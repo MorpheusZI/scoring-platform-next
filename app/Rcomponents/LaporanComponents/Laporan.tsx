@@ -14,6 +14,9 @@ interface LaporanProps {
 
 export default function Laporan({ onUpdateHeaders, clickedHeader }: LaporanProps) {
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null)
+  const [apitext, setApitext] = useState<string>('')
+  const testingRouteHandlers = fetch("http://localhost:3000/OneOnOne/api/hello").then(res => res.text())
+  const ahay = testingRouteHandlers.then(resres => console.log(setApitext(resres)))
 
   useEffect(() => {
     const heders = document.querySelectorAll('#heading')
@@ -52,7 +55,7 @@ export default function Laporan({ onUpdateHeaders, clickedHeader }: LaporanProps
     <div id="LaporanWrap" className="h-[200vh]">
       <ToolBar editor={editorInstance} />
       <div className="flex flex-col gap-6 px-7 py-6">
-        <h1 className="text-2xl">Laporan</h1>
+        <h1 className="text-2xl">Laporan {apitext}</h1>
         <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
           <h1>Ceritakan bagaimana berjalannya komitmenmu dalam 2 minggu terakhir.</h1>
           <div className="flex flex-col gap-3 p-3 rounded-lg transition-all duration-500 ease-out">
