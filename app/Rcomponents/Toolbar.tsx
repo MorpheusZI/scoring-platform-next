@@ -4,58 +4,48 @@ import {
   Italic,
   Strikethrough,
   List,
-  ListOrdered,
-  Heading1,
-  Heading2,
-  Heading3,
-  Underline,
-  Undo,
-  Redo,
   ArrowUpDown,
+  ListOrdered,
+  Underline,
   Quote,
 } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import { Toggle } from '../../components/ui/toggle'
+import { useEffect } from 'react'
 
 type ToolBarProps = {
   editor: Editor | null,
+  onToolbarClick?: (command: string) => void
 }
-export default function ToolBar({ editor }: ToolBarProps) {
+export default function ToolBar({ editor, onToolbarClick }: ToolBarProps) {
   return (
     <div className="flex w-full p-2 rounded-t border-b-2 border-black bg-gray-200">
       <div className="flex w-fit pe-1 border-r-2 border-black">
         <Toggle
           size="sm"
-          pressed={editor?.isActive('heading', { level: 2 })}
-          onPressedChange={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-        >
-          <Heading1 />
-        </Toggle>
-        <Toggle
-          size="sm"
           pressed={editor?.isActive("bold")}
-          onPressedChange={() => editor?.chain().focus().toggleBold().run()}
+          onPressedChange={() => { onToolbarClick ? onToolbarClick('toggleBold') : console.log('nope') }}
         >
           <Bold />
         </Toggle>
         <Toggle
           size="sm"
           pressed={editor?.isActive("underline")}
-          onPressedChange={() => editor?.commands.toggleUnderline()}
+          onPressedChange={() => { onToolbarClick ? onToolbarClick('toggleUnderline') : console.log('nope') }}
         >
           <Underline />
         </Toggle>
         <Toggle
           size="sm"
           pressed={editor?.isActive("italic")}
-          onPressedChange={() => editor?.chain().focus().toggleItalic().run()}
+          onPressedChange={() => { onToolbarClick ? onToolbarClick('toggleItalic') : console.log('nope') }}
         >
           <Italic />
         </Toggle>
         <Toggle
           size="sm"
           pressed={editor?.isActive("strike")}
-          onPressedChange={() => editor?.chain().focus().toggleStrike().run()}
+          onPressedChange={() => { onToolbarClick ? onToolbarClick('toggleStrike') : console.log('nope') }}
         >
           <Strikethrough />
         </Toggle>
@@ -64,28 +54,28 @@ export default function ToolBar({ editor }: ToolBarProps) {
         <Toggle
           size="sm"
           pressed={editor?.isActive("blockquote")}
-          onPressedChange={() => editor?.chain().focus().toggleBlockquote().run()}
+          onPressedChange={() => { onToolbarClick ? onToolbarClick('toggleBlockquote') : console.log('nope') }}
         >
           <Quote />
         </Toggle>
         <Toggle
           size="sm"
           pressed={editor?.isActive("orderedList")}
-          onPressedChange={() => editor?.chain().focus().toggleOrderedList().run()}
+          onPressedChange={() => { onToolbarClick ? onToolbarClick('toggleOrderedList') : console.log('nope') }}
         >
           <ListOrdered />
         </Toggle>
         <Toggle
           size="sm"
           pressed={editor?.isActive("bulletList")}
-          onPressedChange={() => editor?.chain().focus().toggleBulletList().run()}
+          onPressedChange={() => { onToolbarClick ? onToolbarClick('toggleBulletList') : console.log('nope') }}
         >
           <List />
         </Toggle>
         <Toggle
           size="sm"
           disabled={!editor?.can().splitListItem('listItem')}
-          onPressedChange={() => editor?.chain().focus().sinkListItem('listItem').run()}
+          onPressedChange={() => { onToolbarClick ? onToolbarClick("Sink") : console.log('nope') }}
         >
           <ArrowUpDown />
         </Toggle>
