@@ -1,10 +1,16 @@
-
+"use client"
 import React, { useState, useEffect } from "react";
+
+// tipTap imports
 import { useEditor, Editor, EditorContent, Content } from '@tiptap/react';
 import { Underline as lineUnder } from '@tiptap/extension-underline';
 import { StarterKit } from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+
+//component imports
 import ToolBar from "../../Rcomponents/Toolbar";
+
+// lucide/shadcn imports
 import { Minus, Plus, Ellipsis, Smile, Frown, Angry } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -17,18 +23,47 @@ type KomitmenData = {
   Isi: string;
 };
 
+type ContentThing = {
+  index: number
+  content: string
+}
+
 export default function Laporan() {
   const [editors, setEditors] = useState<Array<Editor | null>>([]);
   const [activeEditorIndex, setActiveEditorIndex] = useState(0);
   const [hoveredEditorIndex, setHoveredEditorIndex] = useState<number | null>(null);
   const [DataArr, setDataArr] = useState<Array<KomitmenData>>([]);
+  const [contentthing, setContething] = useState<ContentThing>()
 
   useEffect(() => {
     setEditors([createEditor()]);
+    const newData = [{ Judul: "", Isi: "" }]
+    setDataArr(newData)
   }, []);
+
+  const addJudulToDataArr = (judul: string) => {
+    if (DataArr[activeEditorIndex]) {
+      DataArr[activeEditorIndex].Judul = judul
+    }
+  }
+
+  const addIsiToDataArr = (isi: string) => {
+    if (DataArr[activeEditorIndex]) {
+      DataArr[activeEditorIndex].Isi = isi
+    }
+  }
+
+  useEffect(() => {
+    const Isidata = contentthing?.content
+    addIsiToDataArr(Isidata ? Isidata : '')
+  }, [contentthing])
+
 
   const createEditor = () => {
     const editor = new Editor({
+      onUpdate: ({ editor }) => {
+        setContething({ index: 1, content: editor.getText() })
+      },
       extensions: [
         StarterKit.configure({
           blockquote: {
@@ -62,36 +97,23 @@ export default function Laporan() {
         attributes: {
           class: "w-full px-3 py-4 text-black outline-none",
         }
-      }
+      },
     });
     return editor;
   };
 
-  const addKomitmen = (judul: string, isi: string) => {
-    const updatedDataArr = [...DataArr];
-    const existingKomitmen = updatedDataArr[activeEditorIndex];
-
-    if (existingKomitmen) {
-      // Update existing KomitmenData object
-      existingKomitmen.Judul = judul;
-      existingKomitmen.Isi = isi;
-    } else {
-      // Add new KomitmenData object
-      updatedDataArr[activeEditorIndex] = { Judul: judul, Isi: isi };
-    }
-
-    setDataArr(updatedDataArr);
-  };
-
-
   const addEditor = () => {
     const newEditors = [...editors, createEditor()];
+    const newData = [...DataArr, { Judul: "", Isi: "" }]
     setEditors(newEditors);
+    setDataArr(newData)
   };
 
   const removeEditor = (index: number) => {
     const updatedEditors = editors.filter((editor, idx) => idx !== index);
+    const updatedDataArr = DataArr.filter((data, idx) => idx !== index);
     setEditors(updatedEditors);
+    setDataArr(updatedDataArr)
   };
 
   const handleEditorChange = (index: number, editor: Editor) => {
@@ -99,7 +121,8 @@ export default function Laporan() {
     updatedEditors[index] = editor;
     setActiveEditorIndex(index);
     setEditors(updatedEditors);
-  };
+
+  }
 
   const handleToolbarClick = (command: any) => {
     const activeEditor = editors[activeEditorIndex];
@@ -165,18 +188,17 @@ export default function Laporan() {
                           type="text"
                           className="flex w-full text-black font-bold outline-none"
                           placeholder="Komitmen anda"
-                          onChange={(e) => {
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             const newJudul = e.target.value;
-                            const isi = editor?.getHTML() || "";
-                            addKomitmen(newJudul, isi);
-                            console.log(DataArr)
+                            addJudulToDataArr(newJudul)
                           }}
+                          onFocus={() => setActiveEditorIndex(index)}
                         />
                       </div>
+
                       <EditorContent
                         editor={editor}
                         className="w-full px-1"
-                        onChange={(content: Content) => handleEditorChange(index, editor)}
                         onFocus={() => {
                           setActiveEditorIndex(index);
                         }}
