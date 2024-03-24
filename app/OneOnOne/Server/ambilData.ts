@@ -1,5 +1,5 @@
 'use server'
 export async function testingdata() {
-  const res = await fetch("https://server-spp.onrender.com/scoringapi/hai").then((res) => res.text())
+  const res = await fetch("http://localhost:3001").then((res) => res.text())
   return res
 }

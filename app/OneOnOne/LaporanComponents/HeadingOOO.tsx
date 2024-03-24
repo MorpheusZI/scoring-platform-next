@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function HeadingOneOnOne() {
   return (
@@ -7,9 +7,7 @@ export default function HeadingOneOnOne() {
         <h1 className="text-3xl font-bold">Laporan 1on1</h1>
         <p className="text-sm">Project IDP Product Designer</p>
       </div>
-      <Link href="/" replace={true}>
-        Simpan Penilaian
-      </Link>
+      <Button>Simpan Penilaian</Button>
     </div>
   )
 }

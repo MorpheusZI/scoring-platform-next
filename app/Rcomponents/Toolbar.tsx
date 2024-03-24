@@ -19,7 +19,7 @@ type ToolBarProps = {
 }
 export default function ToolBar({ editor, onToolbarClick }: ToolBarProps) {
   return (
-    <div className="flex w-full p-2 rounded-t border-b-2 border-black bg-gray-200">
+    <div className="flex w-full p-2 border-b-2 border-black bg-gray-100">
       <div className="flex w-fit pe-1 border-r-2 border-black">
         <Toggle
           size="sm"
