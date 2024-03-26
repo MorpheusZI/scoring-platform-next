@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from "react";
-
+import React, { useState, useEffect } from "react"
 // tipTap imports
 import { useEditor, Editor, EditorContent } from '@tiptap/react';
 import { Underline } from '@tiptap/extension-underline';
 import { StarterKit } from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+
+//tiptap Collaboration
+import { Collaboration } from '@tiptap/extension-collaboration'
+import * as Y from 'yjs'
+import { TiptapCollabProvider } from '@hocuspocus/provider'
 
 //component imports
 import ToolBar from "../../Rcomponents/Toolbar";
@@ -62,6 +66,13 @@ export default function Laporan({ handleKomitmenDatatoAI }: LaporanProps) {
 
 
   const createEditor = () => {
+    const ydoc = new Y.Doc()
+    const provider = new TiptapCollabProvider({
+      name: `KomitmenContentDoc${editors.length}`,
+      appId: '7mezzgmy',
+      token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MTE0NDAwMTYsIm5iZiI6MTcxMTQ0MDAxNiwiZXhwIjoxNzExNTI2NDE2LCJpc3MiOiJodHRwczovL2Nsb3VkLnRpcHRhcC5kZXYiLCJhdWQiOiI3bWV6emdteSJ9.4C8uIXaK-yGVcRJYpnpTtdxBpYBJfugaiaM692Qsor8',
+      document: ydoc
+    })
     const editor = new Editor({
       onUpdate: ({ editor }) => {
         setContething({ content: editor.getText() })
@@ -88,6 +99,9 @@ export default function Laporan({ handleKomitmenDatatoAI }: LaporanProps) {
         Placeholder.configure({
           placeholder: "Deskripsikan bagamaina situasi,cara anda melakukan dan hasilnya...",
           emptyEditorClass: "first:before:h-0 first:before:text-gray-400 first:before:content-[attr(data-placeholder)] first:before:float-left"
+        }),
+        Collaboration.configure({
+          document: ydoc
         })
       ],
       editorProps: {
