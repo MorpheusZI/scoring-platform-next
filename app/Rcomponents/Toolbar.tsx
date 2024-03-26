@@ -14,7 +14,7 @@ import { Toggle } from '../../components/ui/toggle'
 import { useEffect } from 'react'
 
 type ToolBarProps = {
-  editor: Editor | null,
+  editor: Editor | undefined,
   onToolbarClick?: (command: string) => void
 }
 export default function ToolBar({ editor, onToolbarClick }: ToolBarProps) {

@@ -33,16 +33,27 @@ type KomitmenData = {
 type ContentThing = {
   content: string
 }
+type TitleThing = {
+  Title: string
+}
+type KomitmenEditors = {
+  TitleEditor: Editor,
+  ContentEditor: Editor,
+}
 
 export default function Laporan({ handleKomitmenDatatoAI }: LaporanProps) {
-  const [editors, setEditors] = useState<Array<Editor | null>>([]);
+  const [editors, setEditors] = useState<Array<KomitmenEditors | null>>([]);
   const [activeEditorIndex, setActiveEditorIndex] = useState(0);
   const [hoveredEditorIndex, setHoveredEditorIndex] = useState<number | null>(null);
   const [DataArr, setDataArr] = useState<Array<KomitmenData>>([]);
   const [contentthing, setContething] = useState<ContentThing>()
+  const [TitleThing, setTitleThing] = useState<TitleThing>()
 
   useEffect(() => {
-    setEditors([createEditor()]);
+    setEditors([{
+      TitleEditor: createTitleEditor(),
+      ContentEditor: createEditor(),
+    }]);
     const newData = [{ Judul: "", Isi: "" }]
     setDataArr(newData)
   }, []);
@@ -64,6 +75,44 @@ export default function Laporan({ handleKomitmenDatatoAI }: LaporanProps) {
     addIsiToDataArr(Isidata ? Isidata : '')
   }, [contentthing])
 
+  useEffect(() => {
+    const Juduldata = TitleThing?.Title
+    addJudulToDataArr(Juduldata ? Juduldata : '')
+  }, [TitleThing])
+
+
+
+  const createTitleEditor = () => {
+    const ydoc = new Y.Doc()
+    const provider = new TiptapCollabProvider({
+      name: `KomitmenTitleDoc${editors.length}`,
+      appId: '7mezzgmy',
+      token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MTE0NDAwMTYsIm5iZiI6MTcxMTQ0MDAxNiwiZXhwIjoxNzExNTI2NDE2LCJpc3MiOiJodHRwczovL2Nsb3VkLnRpcHRhcC5kZXYiLCJhdWQiOiI3bWV6emdteSJ9.4C8uIXaK-yGVcRJYpnpTtdxBpYBJfugaiaM692Qsor8',
+      document: ydoc
+    })
+    const Titleeditor = new Editor({
+      onUpdate: ({ editor }) => {
+        setTitleThing({ Title: editor.getText() })
+      },
+      extensions: [
+        StarterKit,
+        Underline,
+        Placeholder.configure({
+          placeholder: "KomitmenAnda",
+          emptyEditorClass: "first:before:h-0 first:before:text-gray-400 first:before:content-[attr(data-placeholder)] first:before:float-left"
+        }),
+        Collaboration.configure({
+          document: ydoc
+        })
+      ],
+      editorProps: {
+        attributes: {
+          class: "w-full px-3 py-4 text-black outline-none",
+        }
+      },
+    });
+    return Titleeditor;
+  }
 
   const createEditor = () => {
     const ydoc = new Y.Doc()
@@ -114,7 +163,10 @@ export default function Laporan({ handleKomitmenDatatoAI }: LaporanProps) {
   };
 
   const addEditor = () => {
-    const newEditors = [...editors, createEditor()];
+    const newEditors = [...editors, {
+      TitleEditor: createTitleEditor(),
+      ContentEditor: createEditor(),
+    }];
     const newData = [...DataArr, { Judul: "", Isi: "" }]
     setEditors(newEditors);
     setDataArr(newData)
@@ -127,16 +179,9 @@ export default function Laporan({ handleKomitmenDatatoAI }: LaporanProps) {
     setDataArr(updatedDataArr)
   };
 
-  const handleEditorChange = (index: number, editor: Editor) => {
-    const updatedEditors = [...editors];
-    updatedEditors[index] = editor;
-    setActiveEditorIndex(index);
-    setEditors(updatedEditors);
-
-  }
 
   const handleToolbarClick = (command: any) => {
-    const activeEditor = editors[activeEditorIndex];
+    const activeEditor = editors[activeEditorIndex]?.ContentEditor;
     if (activeEditor) {
       switch (command) {
         case 'toggleBold':
@@ -179,7 +224,7 @@ export default function Laporan({ handleKomitmenDatatoAI }: LaporanProps) {
 
   return (
     <div id="LaporanWrap" className="h-fit">
-      <ToolBar onToolbarClick={handleToolbarClick} editor={editors[activeEditorIndex]} />
+      <ToolBar onToolbarClick={handleToolbarClick} editor={editors[activeEditorIndex]?.ContentEditor} />
       <div className="editor-container">
         <div className="flex flex-col gap-6 px-7 py-6">
           <h1 className="text-2xl">Laporan </h1>
@@ -195,20 +240,13 @@ export default function Laporan({ handleKomitmenDatatoAI }: LaporanProps) {
                           type="checkbox"
                           className="w-4"
                         />
-                        <input
-                          type="text"
-                          className="flex w-full text-black font-bold outline-none"
-                          placeholder="Komitmen anda"
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            const newJudul = e.target.value;
-                            addJudulToDataArr(newJudul)
-                          }}
-                          onFocus={() => setActiveEditorIndex(index)}
-                        />
+                        <EditorContent editor={editor.TitleEditor} onFocus={() => {
+                          setActiveEditorIndex(index)
+                        }} />
                       </div>
 
                       <EditorContent
-                        editor={editor}
+                        editor={editor.ContentEditor}
                         className="w-full px-1"
                         onFocus={() => {
                           setActiveEditorIndex(index);
@@ -244,7 +282,8 @@ export default function Laporan({ handleKomitmenDatatoAI }: LaporanProps) {
                   <p className="underline">Tambah Komitmen</p>
                 </Button>
                 <Button onClick={() => {
-                  handleKomitmenDatatoAI(DataArr)
+                  // handleKomitmenDatatoAI(DataArr)
+                  console.log(DataArr)
                 }} className="w-fit gap-3 self-end">
                   <Sparkles />
                   <p>Cek Kualitas Deskripsi</p>
