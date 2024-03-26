@@ -1,9 +1,8 @@
-"use client"
 import React, { useState, useEffect } from "react";
 
 // tipTap imports
-import { useEditor, Editor, EditorContent, Content } from '@tiptap/react';
-import { Underline as lineUnder } from '@tiptap/extension-underline';
+import { useEditor, Editor, EditorContent } from '@tiptap/react';
+import { Underline } from '@tiptap/extension-underline';
 import { StarterKit } from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 
@@ -11,12 +10,16 @@ import Placeholder from '@tiptap/extension-placeholder';
 import ToolBar from "../../Rcomponents/Toolbar";
 
 // lucide/shadcn imports
-import { Minus, Plus, Ellipsis, Smile, Frown, Angry } from "lucide-react";
+import { Minus, Plus, Ellipsis, Smile, Frown, Angry, Sparkles } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu";
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from "@/components/ui/button";
+
+type LaporanProps = {
+  handleKomitmenDatatoAI: (KomitmenDataArr: KomitmenData[]) => void
+}
 
 type KomitmenData = {
   Judul: string;
@@ -24,11 +27,10 @@ type KomitmenData = {
 };
 
 type ContentThing = {
-  index: number
   content: string
 }
 
-export default function Laporan() {
+export default function Laporan({ handleKomitmenDatatoAI }: LaporanProps) {
   const [editors, setEditors] = useState<Array<Editor | null>>([]);
   const [activeEditorIndex, setActiveEditorIndex] = useState(0);
   const [hoveredEditorIndex, setHoveredEditorIndex] = useState<number | null>(null);
@@ -62,7 +64,7 @@ export default function Laporan() {
   const createEditor = () => {
     const editor = new Editor({
       onUpdate: ({ editor }) => {
-        setContething({ index: 1, content: editor.getText() })
+        setContething({ content: editor.getText() })
       },
       extensions: [
         StarterKit.configure({
@@ -80,14 +82,9 @@ export default function Laporan() {
               class: "mx-7 list-decimal list-outside "
             }
           },
-          heading: {
-            levels: [1, 2, 3],
-            HTMLAttributes: {
-              class: 'text-4xl'
-            }
-          },
+
         }),
-        lineUnder,
+        Underline,
         Placeholder.configure({
           placeholder: "Deskripsikan bagamaina situasi,cara anda melakukan dan hasilnya...",
           emptyEditorClass: "first:before:h-0 first:before:text-gray-400 first:before:content-[attr(data-placeholder)] first:before:float-left"
@@ -210,16 +207,10 @@ export default function Laporan() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="w-56">
                             <DropdownMenuGroup>
-                              <DropdownMenuItem onClick={() => addEditor()}>
-                                Tambah Komitmen
-                                <DropdownMenuShortcut><Plus /></DropdownMenuShortcut>
+                              <DropdownMenuItem onClick={() => removeEditor(index)}>
+                                Delete Komitmen
+                                <DropdownMenuShortcut><Minus /></DropdownMenuShortcut>
                               </DropdownMenuItem>
-                              {index !== 0 &&
-                                <DropdownMenuItem onClick={() => removeEditor(index)}>
-                                  Delete Komitmen
-                                  <DropdownMenuShortcut><Minus /></DropdownMenuShortcut>
-                                </DropdownMenuItem>
-                              }
                             </DropdownMenuGroup>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -231,6 +222,20 @@ export default function Laporan() {
                   return null;
                 }
               })}
+              <div className="flex gap-4 self-end">
+                <Button variant="ghost" className="w-fit gap-3" onClick={() => {
+                  addEditor()
+                }}>
+                  <Plus />
+                  <p className="underline">Tambah Komitmen</p>
+                </Button>
+                <Button onClick={() => {
+                  handleKomitmenDatatoAI(DataArr)
+                }} className="w-fit gap-3 self-end">
+                  <Sparkles />
+                  <p>Cek Kualitas Deskripsi</p>
+                </Button>
+              </div>
             </div>
           </div>
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
@@ -256,3 +261,4 @@ export default function Laporan() {
   );
 }
 
+export type { KomitmenData }

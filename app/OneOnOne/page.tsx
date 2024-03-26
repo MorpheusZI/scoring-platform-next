@@ -1,11 +1,21 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import HeadingOneOnOne from './LaporanComponents/HeadingOOO'
 import Sidebar from './LaporanComponents/SideBar'
-import Laporan from './LaporanComponents/Laporan'
+import Laporan, { KomitmenData } from './LaporanComponents/Laporan'
 export default function Home() {
   const [headers, setHeaders] = useState<string[]>([]);
   const [clickedHeader, setClickedHeader] = useState<string>()
+  const [KomitmenDatArr, setKomitmenDataArr] = useState<KomitmenData[]>([])
+  const [KomitmenChange, setKomitmenChange] = useState<boolean>(false)
+  useEffect(() => {
+    setKomitmenChange(!KomitmenChange)
+  }, [])
+  const handleKomitmenData = (KomDataArr: KomitmenData[]) => {
+    console.log(KomDataArr, "ini dari page")
+    setKomitmenDataArr(KomDataArr)
+    setKomitmenChange(!KomitmenChange)
+  };
 
 
   const updateHeaders = (newHeaders: string[]) => {
@@ -21,10 +31,10 @@ export default function Home() {
       <HeadingOneOnOne />
       <div className="flex">
         <div className="w-[70%] border-r-2 border-r-black h-[85vh] overflow-y-scroll ">
-          <Laporan />
+          <Laporan handleKomitmenDatatoAI={handleKomitmenData} />
         </div>
         <div className="w-[30%] border-r-2 border-r-black">
-          <Sidebar />
+          <Sidebar KomitmenChange={KomitmenChange} KomitmenDataArr={KomitmenDatArr} />
         </div>
       </div>
     </div>
