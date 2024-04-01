@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+// Define the User table
+model User {
+  UserID    Int          @id @default(autoincrement())
+  username  String
+  password  String
+  email     String       @unique
+  Team      TeamEnum
+  Position  PositionEnum
+  Documents Document[]
+}
+
+// Define the Document table
+model Document {
+  DocID       Int      @id @default(autoincrement())
+  DocumentID  String   @unique
+  updated_at  DateTime @updatedAt
+  created_at  DateTime @default(now())
+  user        User?    @relation(fields: [OwnerUserID], references: [UserID])
+  OwnerUserID Int?
+}
+
+// Define the enumeration types for Team and Position
+enum TeamEnum {
+  engineer
+  TalentScientist
+  Designer
+  HR
+  Finance
+}
+
+enum PositionEnum {
+  Manager
+  AnggotaTim
+}
