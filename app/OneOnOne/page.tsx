@@ -15,17 +15,17 @@ export default function Home() {
   const [UserData, setUserData] = useState<UserData | null>()
   const uid = new ShortUniqueId({ length: 5 })
   useEffect(() => {
-    const Userdata = localStorage.getItem('UserStore')
-    const res = setUserData(Userdata ? JSON.parse(Userdata) : null)
-    if (!Userdata) {
-      return redirect('/Login')
-    }
-
-    if (UserData && UserData?.Documents.length > 0) {
-      const Docres = AmbilDocument(UserData.User.UserID).then()
-    } else if (UserData && UserData?.Documents.length === 0) {
-
-    }
+    // const Userdata = localStorage.getItem('UserStore')
+    // const res = setUserData(Userdata ? JSON.parse(Userdata) : null)
+    // if (!Userdata) {
+    //   return redirect('/Login')
+    // }
+    //
+    // if (UserData && UserData?.Documents.length > 0) {
+    //   const Docres = AmbilDocument(UserData.User.UserID).then()
+    // } else if (UserData && UserData?.Documents.length === 0) {
+    //   console.log("hi")
+    // }
   }, [])
-  return <p>{DocUID}</p>
+  return <p></p>
 }
