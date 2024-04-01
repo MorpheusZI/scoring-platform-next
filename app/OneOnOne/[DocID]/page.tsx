@@ -43,7 +43,7 @@ export default function Home({ params }: { params: { DocID: string } }) {
       <HeadingOneOnOne />
       <div className="flex">
         <div className="w-[70%] border-r-2 border-r-black h-[85vh] overflow-y-scroll ">
-          <Laporan handleKomitmenDatatoAI={handleKomitmenData} DocID={params.DocID} />
+          <Laporan User={UserData ? UserData : null} handleKomitmenDatatoAI={handleKomitmenData} DocID={params.DocID} />
         </div>
         <div className="w-[30%] border-r-2 border-r-black">
           <Sidebar KomitmenChange={KomitmenChange} KomitmenDataArr={KomitmenDatArr} />
