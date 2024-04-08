@@ -3,7 +3,7 @@ import ShortUniqueId from 'short-unique-id'
 import { useState, useEffect } from 'react'
 import { Document, User } from '@prisma/client'
 import { redirect } from 'next/navigation'
-import { AmbilDocument } from './Server/BikinDocument'
+import { AmbilPreDocument } from './Server/BikinDocument'
 
 export interface UserData {
   User: User,
