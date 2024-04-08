@@ -21,8 +21,8 @@ export default function Sidebar({ aiResp, SummaryCall }: SideBarRevProps) {
       <div className="p-4 text-sm bg-black text-white rounded-xl mb-2">
         <p className="font-semibold mb-4 text-center">{findSubtopics?.SubTopicTitle}</p>
         <ul className="list-disc list-inside">
-          {guides?.map((guide) => (
-            <li className="mb-4">{guide.SubtopicGuide}</li>
+          {guides?.map((guide, index) => (
+            <li key={index} className="mb-4">{guide.SubtopicGuide}</li>
           ))}
         </ul>
       </div>

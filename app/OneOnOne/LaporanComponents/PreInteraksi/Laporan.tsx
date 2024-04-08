@@ -146,7 +146,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller }: La
 
   useEffect(() => {
     console.log(DataArr)
-    console.log(aditor?.getHTML())
   }, [$Judul, $Isi])
 
   const filteredManagers = Managers.filter((m) => m.email !== User?.email)
