@@ -201,8 +201,8 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller }: La
               </Select>
             </div>
             <ul className="list-inside ">
-              {Subtopics.map((SubTopic) => {
-                return <li className="list-disc">{SubTopic.SubTopicTitle}</li>
+              {Subtopics.map((SubTopic, index) => {
+                return <li key={index} className="list-disc">{SubTopic.SubTopicTitle}</li>
               })}
             </ul>
           </div>
