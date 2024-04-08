@@ -14,14 +14,14 @@ export type SideBarRevProps = {
 export default function Sidebar({ aiResp, SummaryCall }: SideBarRevProps) {
   const [PickedTopics, setPickedTopics] = useState<Array<string>>([])
 
-  const renderedGuides = PickedTopics.map((topic) => {
+  const renderedGuides = PickedTopics.map((topic, index) => {
     const findSubtopics = Subtopics.find((subtopic) => subtopic.SubTopicTitle === topic)
     const guides = findSubtopics?.Guides
     return (
-      <div className="p-4 text-sm bg-black text-white rounded-xl mb-2">
+      <div key={index} className="p-4 text-sm bg-black text-white rounded-xl mb-2">
         <p className="font-semibold mb-4 text-center">{findSubtopics?.SubTopicTitle}</p>
         <ul className="list-disc list-inside">
-          {guides?.map((guide, index) => (
+          {guides?.map((guide) => (
             <li key={index} className="mb-4">{guide.SubtopicGuide}</li>
           ))}
         </ul>

@@ -87,6 +87,7 @@ async function vertexAIStarChecker({ Judul, Isi }: KomitmenData) {
 
   return cobaObj;
 }
+
 export async function testingdata(KomitmenDataArr: KomitmenData[]) {
   const promises = KomitmenDataArr.map(async (KomitmenData, index) => {
     const airestext = await vertexAIStarChecker(KomitmenData);

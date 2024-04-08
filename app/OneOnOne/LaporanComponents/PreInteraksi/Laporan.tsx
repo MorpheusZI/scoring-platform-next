@@ -63,6 +63,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller }: La
   useEffect(() => {
     getHTMLandContent()
   }, [FuncCaller])
+
   function handleSelectManagerChange(val: string) {
     if (User) {
       const res = updateUserManager(User.email, val).then((res) => res)
@@ -125,7 +126,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller }: La
 
 
   const $Isi = aditor?.$nodes('paragraph')
-  console.log($Isi)
   const isi = $Isi?.map(($task, index) => {
     return $task.textContent
   })
