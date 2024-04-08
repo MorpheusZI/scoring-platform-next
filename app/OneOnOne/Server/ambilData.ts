@@ -1,7 +1,9 @@
 'use server'
+import { PrismaClient } from '@prisma/client'
 import { GenerateContentRequest, GenerativeModel, } from "@google-cloud/vertexai"
-import { KomitmenData } from "../LaporanComponents/Laporan"
+import { KomitmenData } from "../LaporanComponents/PreInteraksi/Laporan"
 import { genModel } from "@/app/verser/vertexai"
+const prisma = new PrismaClient()
 
 type AiresBody = {
   AIres: string,
@@ -12,6 +14,13 @@ type AIresArr = {
   AiResArr: AiresBody[] | null
 }
 
+export interface SummaryReq {
+  KomitmenAtasan: string | undefined;
+  KomitmenBawahan: string | undefined;
+  Catatan: string | undefined;
+  NamaManager: string | undefined;
+  NamaMentee: string | undefined;
+}
 
 export interface NestedObject {
   text: string;
@@ -27,14 +36,14 @@ export interface AIResponse {
   Judul: string;
 }
 
-function parseAIResponse(response: string, judul: string): AIResponse {
+function parseAIResponse(response: string, judul: string | undefined): AIResponse {
   const mainKeys = ["Situasi", "Tugas", "Aksi", "Hasil"];
   const obj: AIResponse = {
     Situasi: { text: "", Kualitas: "", Komentar: "" },
     Tugas: { text: "", Kualitas: "", Komentar: "" },
     Aksi: { text: "", Kualitas: "", Komentar: "" },
     Hasil: { text: "", Kualitas: "", Komentar: "" },
-    Judul: judul,
+    Judul: judul ? judul : '',
   };
 
   mainKeys.forEach((key) => {
@@ -51,6 +60,18 @@ function parseAIResponse(response: string, judul: string): AIResponse {
   });
 
   return obj;
+}
+
+export async function vertexAISummarizer({ KomitmenAtasan, KomitmenBawahan, Catatan, NamaMentee, NamaManager }: SummaryReq) {
+  const summarryReq: GenerateContentRequest = {
+    contents: [{ role: "user", parts: [{ text: `data:{KomitmenAtasan: ${KomitmenAtasan},KomitmenBawahan: ${KomitmenBawahan},Catatan: ${Catatan}, NamaAtasan: ${NamaManager},NamaBawahan: ${NamaMentee}}. prompt = Dari hasil komitmen atasan, komitmen bawahan, dan catatan, buatkan summary hanya dalam 1 paragraf makismal 5 Kalimat. Notes: Catatan dimiliki oleh Atasan` }] }]
+  }
+  const vresponseStream = await genModel.generateContentStream(summarryReq)
+  const response = await vresponseStream.response
+
+  const fulltextResponse = response.candidates[0].content.parts[0].text
+  return fulltextResponse
+
 }
 
 async function vertexAIStarChecker({ Judul, Isi }: KomitmenData) {
@@ -82,4 +103,19 @@ export async function testingdata(KomitmenDataArr: KomitmenData[]) {
   return filteredResults
 }
 
+export async function getManagers() {
+  const managers = await prisma.user.findMany()
+  return managers
+}
 
+export async function updateUserManager(userEmail: string, managerP: string) {
+  const userUpdated = await prisma.user.update({
+    where: {
+      email: userEmail,
+    },
+    data: {
+      manager: managerP
+    }
+  })
+  return userUpdated
+}

@@ -18,6 +18,7 @@ const formSchema = z.object({
 
 export default function Home() {
   const [LoadState, setLoadState] = useState(false)
+  const [ErrorMsg, setErrorMsg] = useState<string | null>(null)
   const router = useRouter()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -25,15 +26,19 @@ export default function Home() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     setLoadState(true)
     const arr = checkUser(values.email, values.password).then(r => {
+      if (!r) {
+        setErrorMsg("User Not found")
+        setLoadState(false)
+        setTimeout(() => {
+          setErrorMsg('')
+        }, 1000)
+        return
+      }
       localStorage.setItem('UserStore', JSON.stringify(r))
       setLoadState(false)
       const TeamData = localStorage.getItem('UserStore')
       const Team = TeamData ? JSON.parse(TeamData) : 'Engineer'
-      if (Team.Position === "Manager") {
-        router.push(`/ListMentee/${Team.Team}`)
-      } else if (Team.Position === "AnggotaTim") {
-        router.push(`/OneonOne`)
-      }
+      router.push(`/OneOnOne/${Team.username}`)
       return r
     })
   }
@@ -68,6 +73,7 @@ export default function Home() {
               </FormItem>
             }}
           />
+          {ErrorMsg && <p className="text-red-200">{ErrorMsg}</p>}
           <div className="flex items-center gap-3 self-end">
             <div className="flex items-center text-xs gap-[2px]">
               <p >Belum punya akun? </p>

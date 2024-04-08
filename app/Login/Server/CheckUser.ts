@@ -1,4 +1,5 @@
 'use server'
+
 import { Prisma, PrismaClient, User } from '@prisma/client'
 const prisma = new PrismaClient()
 

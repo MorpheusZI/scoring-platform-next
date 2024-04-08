@@ -1,44 +1,36 @@
 'use server'
-import { Document, Prisma, PrismaClient, User } from '@prisma/client'
+import { Document, Prisma, PrismaClient, User, DocumentType } from '@prisma/client'
 const prisma = new PrismaClient()
 
-export type DocumentServe = {
-  DocumentID: string,
-  updated_at: Date,
-  created_at: Date,
-  OwnerUserID: number | null,
+type EditorTextandHTML = {
+  Content: string | undefined,
+  HTML: string | undefined
 }
 
-type BikinDocument = {
-  Document: DocumentServe,
-  UserID: number;
+export async function BikinDocument(Document: EditorTextandHTML, UserID: number | undefined, Doctype: DocumentType) {
+  const DocumentMade = await prisma.document.create({
+    data: {
+      DocContent: Document.Content,
+      DocHTML: Document.HTML,
+      updated_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      DocType: Doctype,
+      OwnerUserID: UserID,
+    }
+  })
+  console.log(JSON.parse(JSON.stringify(DocumentMade)))
+  return DocumentMade
 }
 
-
-export async function BikinDocument({ Document, UserID }: BikinDocument) {
-  try {
-    const res = await prisma.document.create({
-      data: {
-        DocumentID: Document.DocumentID,
-        updated_at: Document.updated_at,
-        created_at: Document.created_at,
-        OwnerUserID: UserID,
-      }
-    })
-    return res
-  } catch (error) {
-    return "error cuy"
-  }
-}
-
-export async function AmbilDocument(UserID: number) {
-  try {
-    const res = await prisma.document.findFirst({
-      where: {
-        OwnerUserID: UserID
-      }
-    })
-  } catch (error) {
-
-  }
+export async function AmbilPreDocument(UserID: number) {
+  const Document = await prisma.document.findFirst({
+    where: {
+      OwnerUserID: UserID,
+      DocType: "KomitmenBawahan"
+    },
+    include: {
+      user: true
+    }
+  })
+  return Document
 }

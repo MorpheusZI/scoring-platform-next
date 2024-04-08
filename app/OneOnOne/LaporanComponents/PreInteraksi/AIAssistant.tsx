@@ -3,8 +3,8 @@ import { useEffect } from 'react'
 import { BotMessageSquare, LoaderCircle } from "lucide-react";
 import { useState } from "react"
 
-import { KomitmenData } from '../LaporanComponents/Laporan'
-import { AIResponse, NestedObject, testingdata } from "../Server/ambilData";
+import { KomitmenData } from '../PreInteraksi/Laporan'
+import { AIResponse, NestedObject, testingdata } from "../../Server/ambilData";
 export type AiAssistProps = {
   KomitmenDataArr: KomitmenData[]
   KomitmenChange: boolean
@@ -15,9 +15,13 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange }: AiAssistPr
   const [AIRes, setAIRes] = useState<any>([])
 
   useEffect(() => {
+    const Komitmendat: KomitmenData = {
+      Judul: "Mempelajari Vertex AI",
+      Isi: "Saya melakukan komitmen ini dengan cara mengakses course dari Google. Saya mendapat knowledge baru dalam pengembangan product ke depan, yaitu memanfaatkan AI dalam proses. Saya merasa senang karena bisa mempelajari AI, sesuatu yang saya awalnya rasa ini sulit, ternyata bisa dipelajari."
+    }
     if (KomitmenDataArr.length !== 0) {
       setAIResState("loading");
-      testingdata(KomitmenDataArr).then(res => {
+      testingdata([Komitmendat]).then(res => {
         setAIRes(res);
         setAIResState("fullfilled");
         console.log(AIRes)

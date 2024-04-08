@@ -9,6 +9,6 @@ export default function Home() {
     if (!Userdata) {
       return redirect('/Login')
     }
-    return redirect(`/ListMentee/${res.Team}`)
+    return redirect(`/OneOnOne/${res.username}`)
   }, [])
 }

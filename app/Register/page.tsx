@@ -21,8 +21,6 @@ const formSchema = z.object({
   username: z.string().min(3, {
     message: "username length cannot be less than 3"
   }),
-  Team: z.enum(['engineer', 'TalentScientist', 'Designer', 'HR', 'Finance']),
-  Position: z.enum(['Manager', 'AnggotaTim']),
 })
 
 export default function Home() {
@@ -37,17 +35,13 @@ export default function Home() {
       username: values.username,
       password: values.password,
       email: values.email,
-      Position: values.Position,
-      Team: values.Team,
     }
     const CreatedUser = createUser(usr).then(r => {
       localStorage.setItem('UserStore', JSON.stringify(r))
-      const TeamData = localStorage.getItem('UserStore')
-      const Team = TeamData ? JSON.parse(TeamData) : ''
-      if (Team) {
-        router.push(`/ListMentee/${Team.Team}`)
-      }
+      const userStringData = localStorage.getItem('UserStore')
+      const UserData = userStringData ? JSON.parse(userStringData) : null
       setLoadState(false)
+      router.push(`/OneOnOne/${UserData.username}`)
       return r
     })
   }
@@ -90,56 +84,6 @@ export default function Home() {
                 <FormLabel>Username</FormLabel>
                 <FormControl>
                   <Input placeholder="username" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            }}
-          />
-          <FormField
-            control={form.control}
-            name="Team"
-            render={({ field }) => {
-              return <FormItem>
-                <FormLabel>Team</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih team anda" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="engineer">Engineer</SelectItem>
-                    <SelectItem value="TalentScientist">Talent Scientist</SelectItem>
-                    <SelectItem value="Designer">Designer</SelectItem>
-                    <SelectItem value="HR">HR</SelectItem>
-                    <SelectItem value="Finance">Finance</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            }}
-          />
-          <FormField
-            control={form.control}
-            name="Position"
-            render={({ field }) => {
-              return <FormItem>
-                <FormLabel>Dalam tim, saya adalah seorang:</FormLabel>
-                <FormControl>
-                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-10">
-                    <FormItem className="flex items-center space-x-1 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="Manager" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Manager</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-1 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="AnggotaTim" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Anggota Tim</FormLabel>
-                    </FormItem>
-                  </RadioGroup>
                 </FormControl>
                 <FormMessage />
               </FormItem>
