@@ -33,11 +33,13 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
     const MenteeData = sessionStorage.getItem('MenteeData')
     const MenteeDat = MenteeData ? JSON.parse(MenteeData) : null
     setMentee(MenteeDat)
+    // @ts-ignore
   }, [])
 
   useEffect(() => {
     if (!Mentee) return
     AmbilPreDocument(Mentee.UserID).then(Doc => setKomitmenBawahaContent(Doc?.DocHTML))
+    // @ts-ignore
   }, [Mentee])
 
   const customTaskList = TaskList.extend({
@@ -87,6 +89,7 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
     if (!KomitmenBawahanContent) return
     PreInteraksiEditor?.commands.setContent(KomitmenBawahanContent)
     console.log("hi")
+    // @ts-ignore
   }, [KomitmenBawahanContent])
 
   const KomitmenAtasanEditor = useEditor(editorOptions)
@@ -107,6 +110,7 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
   useEffect(() => {
     if (!KomitmenBawahanContent) return
     handleSummarize()
+    // @ts-ignore
   }, [CallSummary])
 
   return (
