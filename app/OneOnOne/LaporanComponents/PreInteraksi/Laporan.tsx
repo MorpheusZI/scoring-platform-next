@@ -189,8 +189,20 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
             <h1>Pilih manager untuk laporan ini</h1>
             <div className="w-fit">
-              {getDefaultManagerValue !== undefined &&
+              {getDefaultManagerValue !== undefined ?
                 <Select defaultValue={getDefaultManagerValue?.email} onValueChange={value => handleSelectManagerChange(value)}>
+                  <SelectTrigger className="gap-5">
+                    <SelectValue placeholder="Pilih manager" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {filteredManagers.map((manager, index) => {
+                        return <SelectItem value={manager.email} key={index}>{manager.username}</SelectItem>
+                      })}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select> :
+                <Select onValueChange={value => handleSelectManagerChange(value)}>
                   <SelectTrigger className="gap-5">
                     <SelectValue placeholder="Pilih manager" />
                   </SelectTrigger>
