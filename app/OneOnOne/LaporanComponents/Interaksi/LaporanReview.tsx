@@ -88,7 +88,6 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
   useEffect(() => {
     if (!KomitmenBawahanContent) return
     PreInteraksiEditor?.commands.setContent(KomitmenBawahanContent)
-    console.log("hi")
     // @ts-ignore
   }, [KomitmenBawahanContent])
 
@@ -110,12 +109,13 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
   useEffect(() => {
     if (!KomitmenBawahanContent) return
     handleSummarize()
-    // @ts-ignore
   }, [CallSummary])
 
   return (
-    <div id="LaporanWrap" className="h-fit">
-      <ToolBar editor={ActiveEditor} />
+    <div id="LaporanWrap" className="h-fit relative">
+      <div className="sticky top-0 z-10">
+        <ToolBar editor={ActiveEditor} />
+      </div>
       <div className="editor-container">
         <div className="flex flex-col gap-6 px-7 py-6">
           <h1 className="text-2xl">Laporan </h1>

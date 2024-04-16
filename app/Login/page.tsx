@@ -31,7 +31,7 @@ export default function Home() {
         setLoadState(false)
         setTimeout(() => {
           setErrorMsg('')
-        }, 1000)
+        }, 5000)
         return
       }
       localStorage.setItem('UserStore', JSON.stringify(r))
@@ -73,7 +73,7 @@ export default function Home() {
               </FormItem>
             }}
           />
-          {ErrorMsg && <p className="text-red-200">{ErrorMsg}</p>}
+          {ErrorMsg && <p className="text-red-500">{ErrorMsg}</p>}
           <div className="flex items-center gap-3 self-end">
             <div className="flex items-center text-xs gap-[2px]">
               <p >Belum punya akun? </p>

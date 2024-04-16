@@ -30,3 +30,11 @@ ul[data-type="taskList"] li ol li {
 ul[data-type="taskList"] li ul[data-type="taskList"]>li {
   display: flex;
 }
+
+.tiptap p.is-empty::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

@@ -1,6 +1,6 @@
 'use client'
 import '../LaporStyles.css'
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 // tipTap imports
 import { useEditor, Editor, EditorContent, JSONContent } from '@tiptap/react';
 import { Underline } from '@tiptap/extension-underline';
@@ -20,12 +20,14 @@ import { DropdownMenuGroup, DropdownMenu, DropdownMenuContent, DropdownMenuItem,
 import { Button } from "@/components/ui/button";
 import { User } from '@prisma/client';
 import { Select, SelectValue, SelectContent, SelectGroup, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { redirect } from 'next/navigation';
 import { BikinDocument } from '../../Server/BikinDocument';
 import { Subtopics } from '../../Server/Topics';
+import { redirect } from 'next/navigation';
+import { toast } from '@/components/ui/use-toast';
 
 type LaporanProps = {
-  handleKomitmenDatatoAI?: (KomitmenDataArr: KomitmenData[]) => void
+  handleKomitmenDatatoAI?: (KomDataArr: KomitmenData[] | undefined) => void
+  handleSavingStatus?: (Status: string) => void
   User: User | null;
   FuncCaller: boolean;
 }
@@ -40,16 +42,12 @@ export type EditorTextandHTML = {
   HTML: string | undefined
 }
 
-type newArr = {
-  IsiContent: string | undefined;
-  BelongsTo: number | undefined;
-}
-
-export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller }: LaporanProps) {
-  const [DataArr, setDataArr] = useState<Array<KomitmenData>>([]);
-  const [IsiArr, setIsiArr] = useState<newArr[]>([])
-
+export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, handleSavingStatus }: LaporanProps) {
   const [Managers, setManager] = useState<User[]>([])
+
+  const [DisabledAI, setDisabledAI] = useState(false)
+  const [prevEditorContentCheck, setprevEditorContentCheck] = useState<string | undefined>("")
+
   useEffect(() => {
     const Userdata = localStorage.getItem('UserStore')
     if (!Userdata) {
@@ -66,12 +64,25 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller }: La
 
   function handleSelectManagerChange(val: string) {
     if (User) {
-      const res = updateUserManager(User.email, val).then((res) => res)
+      const managerusername = Managers.find((m) => m.email === val)
+      const res = updateUserManager(User.email, val).then((res) =>
+        toast({
+          title: "Manager terpilih!",
+          description: `Manager Untuk laporan ini: ${managerusername?.username}`
+        })
+      )
       if (!res) {
         console.log('nope')
       }
     }
   }
+
+  const getDefaultManagerValue = useMemo(() => {
+    if (!Managers && !User) return
+    const manag = Managers.find((m) => m.email === User?.manager)
+    return manag
+  }, [Managers, User])
+
   const customTaskList = TaskList.extend({
     addKeyboardShortcuts() {
       return {
@@ -81,11 +92,18 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller }: La
   })
 
   const aditor = useEditor({
+    onUpdate: () => {
+      if (prevEditorContentCheck === aditor?.getText()) {
+        setDisabledAI(true)
+      } else {
+        setDisabledAI(false)
+      }
+    },
     extensions: [
       StarterKit.configure({
         blockquote: {
           HTMLAttributes: {
-            class: "ml-5 px-3 border-l-2 border-gray-400"
+            class: "pl-5 px-3 border-l-2 border-gray-400"
           },
         },
         bulletList: {
@@ -103,8 +121,14 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller }: La
       customTaskList,
       TaskItem,
       Placeholder.configure({
-        placeholder: "Tulislah Komitmen mu...",
-        emptyEditorClass: "first:before:h-0 first:before:text-gray-400 first:before:content-[attr(data-placeholder)] first:before:float-left"
+        placeholder: ({ node }) => {
+          if (node.type.name === 'taskList') {
+            return "Tab Untuk mendeskripsikan Komitmen"
+          }
+          return "CTRL + K Untuk menambahkan Komitmen"
+        },
+        emptyEditorClass: "first:before:h-1 first:before:text-gray-400 first:before:content-[attr(data-placeholder)] first:before:float-left first:before:z-10",
+        considerAnyAsEmpty: true,
       }),
     ],
     editorProps: {
@@ -116,60 +140,69 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller }: La
 
   function getHTMLandContent() {
     if (aditor?.getText() === undefined || aditor.getHTML() === undefined) return
+    if (!handleSavingStatus) return
+    handleSavingStatus("Saving")
     const ReturnObject: EditorTextandHTML = {
       HTML: aditor?.getHTML(),
       Content: aditor?.getText()
     }
-    const res = BikinDocument(ReturnObject, User?.UserID, "KomitmenBawahan").then(r => console.log(r, "succes"))
+    const res = BikinDocument(ReturnObject, User?.UserID, "KomitmenBawahan").then(r => handleSavingStatus("Saved"))
     return ReturnObject
   }
 
-
   const $Isi = aditor?.$nodes('paragraph')
-  const isi = $Isi?.map(($task, index) => {
-    return $task.textContent
-  })
-
   const $Judul = aditor?.$nodes('taskList')
-  const aw = $Judul?.map(($task, indexa) => {
-    if (DataArr[indexa]) {
-      DataArr[indexa].Judul = $task.textContent
-      DataArr[indexa].Isi = isi?.join(' ')
-    } else {
-      setDataArr([...DataArr, { Judul: $task.textContent, Isi: isi?.join(' ') }])
-    }
+  const isiList = ($Isi || []).map(($el) => {
     return {
-      task: $task.textContent,
-      index: indexa,
+      content: $el.textContent,
+      pos: $el.pos
     }
   })
 
-  useEffect(() => {
-    console.log(DataArr)
-  }, [$Judul, $Isi])
 
+  const dataList: KomitmenData[] | undefined = useMemo(() => $Judul?.map(($el, i) => {
+    const pos = $el.pos;
+    const posNext = i < ($Judul.length - 1) ? $Judul[i + 1].pos : 0;
+    return {
+      Judul: $el.textContent,
+      Isi: isiList.filter((d) => posNext > 0 ? (d.pos > pos && d.pos < posNext) : (d.pos > pos)).map((d) => d.content).join(' '),
+    };
+  }), [$Judul, isiList])
+
+  const handleAIassist = () => {
+    if (!handleKomitmenDatatoAI) return
+    handleKomitmenDatatoAI(dataList)
+    setDisabledAI(true)
+    setprevEditorContentCheck(aditor?.getText())
+
+  }
   const filteredManagers = Managers.filter((m) => m.email !== User?.email)
+
   return (
-    <div id="LaporanWrap" className="h-fit">
-      <ToolBar editor={aditor} />
+    <div id="LaporanWrap" className="h-fit relative">
+      <div className="sticky top-0 z-10">
+        <ToolBar editor={aditor} />
+      </div>
       <div className="editor-container">
         <div className="flex flex-col gap-6 px-7 py-6">
-          <h1 className="text-2xl">Laporan </h1>
+          <h1 className="text-2xl">Laporan</h1>
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
-            <h1>Pilih Manager laporan ini</h1>
+            <h1>Pilih manager untuk laporan ini</h1>
             <div className="w-fit">
-              <Select onValueChange={value => handleSelectManagerChange(value)}>
-                <SelectTrigger className="gap-5">
-                  <SelectValue placeholder="Pilih manager" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {filteredManagers.map((manager, index) => {
-                      return <SelectItem value={manager.email} key={index}>{manager.username}</SelectItem>
-                    })}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+              {getDefaultManagerValue !== undefined &&
+                <Select defaultValue={getDefaultManagerValue?.email} onValueChange={value => handleSelectManagerChange(value)}>
+                  <SelectTrigger className="gap-5">
+                    <SelectValue placeholder="Pilih manager" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {filteredManagers.map((manager, index) => {
+                        return <SelectItem value={manager.email} key={index}>{manager.username}</SelectItem>
+                      })}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              }
             </div>
           </div>
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
@@ -177,9 +210,13 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller }: La
             <EditorContent editor={aditor} />
             <div className="flex flex-col gap-2">
               <div className="flex gap-4 self-end">
-                <Button onClick={() => {
-                  console.log(DataArr)
-                }} className="w-fit gap-3 self-end">
+                <Button
+                  disabled={DisabledAI}
+                  onClick={() => {
+                    handleAIassist()
+                  }
+                  }
+                  className="w-fit gap-3 self-end">
                   <Sparkles />
                   <p>Cek Kualitas Deskripsi</p>
                 </Button>

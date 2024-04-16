@@ -6,16 +6,18 @@ import { redirect } from 'next/navigation'
 import { User } from '@prisma/client'
 import Loading from './loading'
 import { Button } from '@/components/ui/button'
-import { CircleUser } from 'lucide-react'
+import { Check, CircleUser, Loader } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from '@/components/ui/use-toast'
 export default function Home() {
-  const [headers, setHeaders] = useState<string[]>([]);
-  const [clickedHeader, setClickedHeader] = useState<string>()
-  const [KomitmenDatArr, setKomitmenDataArr] = useState<KomitmenData[]>([])
+  const [KomitmenDatArr, setKomitmenDataArr] = useState<KomitmenData[] | undefined>([])
   const [KomitmenChange, setKomitmenChange] = useState<boolean>(false)
-  const [UserData, setUserData] = useState<User | null>()
 
   const [HTMLContentCall, setHTMLContentCall] = useState<boolean>(false)
+  const [SaveStatus, setSaveStatus] = useState<string>("nill")
+
+  const [UserData, setUserData] = useState<User | null>()
+
 
   useEffect(() => {
     setKomitmenChange(!KomitmenChange)
@@ -28,19 +30,41 @@ export default function Home() {
       return redirect('/Login')
     }
   }, [])
-  const handleKomitmenData = (KomDataArr: KomitmenData[]) => {
-    console.log(KomDataArr, "ini dari page")
-    //   setKomitmenDataArr(KomDataArr)
-    //   setKomitmenChange(!KomitmenChange)
+
+  const handleKomitmenData = (KomDataArr: KomitmenData[] | undefined) => {
+    setKomitmenDataArr(KomDataArr)
+    setKomitmenChange(!KomitmenChange)
   };
 
+  const handleSaveKomitmenData = () => {
+    setHTMLContentCall(!HTMLContentCall)
+  }
 
-  const updateHeaders = (newHeaders: string[]) => {
-    setHeaders(newHeaders);
-  };
-
-  const updateClickedHeader = (cHeader: string) => {
-    setClickedHeader(cHeader)
+  const RenderSave = () => {
+    switch (SaveStatus) {
+      case "nill":
+        return <Button onClick={handleSaveKomitmenData}>Simpan Penilaian</Button>
+        break;
+      case "Saving":
+        return <div className="px-16 py-2 rounded-lg bg-black">
+          <Loader className="text-white animate-spin" />
+        </div>
+        break;
+      case "Saved":
+        toast({
+          title: "Komitmen telah disimpan!"
+        })
+        setTimeout(() => {
+          setSaveStatus("nill")
+        }, 2000);
+        return <div className="px-16 py-2 rounded-lg bg-black">
+          <Check className="text-white" />
+        </div>
+        break;
+      default:
+        return <Button onClick={handleSaveKomitmenData}>Simpan Penilaian</Button>
+        break;
+    }
   }
 
   return (
@@ -59,12 +83,17 @@ export default function Home() {
               </div>
             </Link>
           </Button>
-          <Button onClick={() => setHTMLContentCall(!HTMLContentCall)}>Simpan Penilaian</Button>
+          {RenderSave()}
         </div>
       </div>
       <div className="flex">
         <div className="w-[70%] border-r-2 border-r-black h-[85vh] overflow-y-scroll ">
-          <Laporan FuncCaller={HTMLContentCall} User={UserData ? UserData : null} handleKomitmenDatatoAI={handleKomitmenData} />
+          <Laporan
+            handleSavingStatus={(Status: string) => { setSaveStatus(Status) }}
+            FuncCaller={HTMLContentCall}
+            User={UserData ? UserData : null}
+            handleKomitmenDatatoAI={handleKomitmenData}
+          />
         </div>
         <div className="w-[30%] border-r-2 border-r-black">
           <Sidebar KomitmenChange={KomitmenChange} KomitmenDataArr={KomitmenDatArr} />

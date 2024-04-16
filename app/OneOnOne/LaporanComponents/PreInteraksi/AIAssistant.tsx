@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { useEffect } from 'react'
-import { BotMessageSquare, LoaderCircle } from "lucide-react";
+import { useEffect, useMemo } from 'react'
+import { BotMessageSquare, CheckCircleIcon, CircleX, Lightbulb, LoaderCircle } from "lucide-react";
 import { useState } from "react"
 
 import { KomitmenData } from '../PreInteraksi/Laporan'
@@ -10,81 +10,114 @@ export type AiAssistProps = {
   KomitmenChange: boolean
 }
 
-export default function AiAssist({ KomitmenDataArr, KomitmenChange }: AiAssistProps) {
+export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistProps) {
   const [AIResState, setAIResState] = useState<string>("null")
-  const [AIRes, setAIRes] = useState<any>([])
+  const [AIRes, setAIRes] = useState<(AIResponse | null)[]>([])
 
   useEffect(() => {
-    const Komitmendat: KomitmenData = {
-      Judul: "Mempelajari Vertex AI",
-      Isi: "Saya melakukan komitmen ini dengan cara mengakses course dari Google. Saya mendapat knowledge baru dalam pengembangan product ke depan, yaitu memanfaatkan AI dalam proses. Saya merasa senang karena bisa mempelajari AI, sesuatu yang saya awalnya rasa ini sulit, ternyata bisa dipelajari."
-    }
-    if (KomitmenDataArr.length !== 0) {
+    if (KomitmenDataArr.length !== 0 && AIRes !== null) {
       setAIResState("loading");
-      testingdata([Komitmendat]).then(res => {
+      testingdata(KomitmenDataArr).then(res => {
         setAIRes(res);
         setAIResState("fullfilled");
-        console.log(AIRes)
       }).catch(error => {
-        console.error("Error fetching AI data:", error);
         setAIResState("null");
       });
     }
   }, [KomitmenChange]);
 
-  function loadingState() {
+  useEffect(() => {
+    if (!AIRes) return
+    const underlineTexts = AIRes.map((res) => {
+      if (!res) return
+      return Object.entries(res).filter(([k, v]) => k !== "Judul").map(([k, v]) => {
+        const val = v as NestedObject
+        return val.text
+      })
+    })
+    const theresAnEmptyObjectOmg = AIRes.filter((AI) => AI?.Situasi.Komentar === "" && AI.Tugas.Komentar === "" && AI.Aksi.Komentar === "" && AI.Hasil.Komentar === "")
+    if (theresAnEmptyObjectOmg.length > 0) {
+      setAIResState("err2")
+      setTimeout(() => {
+        testingdata(KomitmenDataArr).then(res => {
+          setAIRes(res)
+          setAIResState("fullfilled")
+        })
+      }, 5000);
+    }
+  }, [AIRes])
 
+  function CheckPercentage(percent: string | undefined) {
+    if (!percent) return
+    const numberz = parseInt(percent.replace("%", ""))
+    if (numberz === 0) {
+      return <p><CircleX className="text-red-400" /></p>
+    } else if (numberz === 100) {
+      return <p ><CheckCircleIcon className="text-green-400" /></p>
+    } else {
+      return <p className="py-1"><Lightbulb className=" text-yellow-300" /></p>
+    }
+    return <p>hi</p>
+  }
+
+
+  function renderValues(values: NestedObject | undefined, key: string) {
+    if (values?.Komentar === "") {
+      return <div key={key} className="flex gap-3 text-sm">
+        <CircleX className="h-8 w-8 text-red-500" />
+        <p className="text-red-500"> AI tidak menemukan kalimat yang memenuhi kriteria {key}</p>
+      </div>
+    }
+    if (key === "Judul") return
+    return <div key={key} className="flex gap-2 text-sm">
+      {CheckPercentage(values?.Kualitas)}
+      <p><span className="font-semibold">{key}</span>: {values?.Komentar}</p>
+    </div>
+  }
+
+  const loadingState = useMemo(() => {
     switch (AIResState) {
       case "null":
-        return <div className="flex flex-col items-center py-10 border-2 bg-white rounded-xl border-gray-300 ">
+        return <div className="flex flex-col items-center py-10 border-2 bg-white rounded-xl border-gray-300 text-black ">
           <div className="flex flex-col gap-5 items-center">
             <h1 className="text-lg">AI STAR Checker</h1>
-            <BotMessageSquare className="w-16 h-16" />
+            <BotMessageSquare className="w-10 h-10" />
           </div>
         </div>
         break;
 
       case "loading":
-        return <div className="flex justify-evenly py-5 items-center ">
-          <LoaderCircle className="w-16 h-16 animate-spin" />
-          <p className="text-lg">AI sedang memasak ...</p>
+        return <div className="flex justify-evenly py-5 items-center text-black ">
+          <LoaderCircle className="w-12 h-12 animate-spin" />
+          <p>AI sedang memasak ...</p>
+        </div>
+        break;
+      case "err2":
+        return <div className="flex justify-evenly py-5 items-center text-black ">
+          <LoaderCircle className="w-12 h-12 animate-spin" />
+          <p className="text-sm">AI Ngawur. mencoba ulang...</p>
         </div>
         break;
       case "fullfilled":
-        return AIRes.map((res: AIResponse, index: number) => {
-          return <div key={index} className="flex flex-col p-5 gap-7 border-2 bg-white rounded-xl border-gray-300 ">
-            <h1 className="text-md font-semibold">{res.Judul}</h1>
-            <div className="flex text-sm justify-between gap-2">
-              <p>{res.Situasi.Kualitas}</p>
-              <p className="font-semibold">Situasi:</p>
-              <p>{res.Situasi.Komentar}</p>
-            </div>
-            <div className="flex text-sm justify-between gap-2">
-              <p>{res.Tugas.Kualitas}</p>
-              <p className="font-semibold">Tugas: </p>
-              <p>{res.Tugas.Komentar}</p>
-            </div>
-            <div className="flex text-sm justify-between gap-2">
-              <p>{res.Aksi.Kualitas}</p>
-              <p className="font-semibold">Aksi: </p>
-              <p>{res.Aksi.Komentar}</p>
-            </div>
-            <div className="flex text-sm justify-between gap-2">
-              <p>{res.Hasil.Kualitas}</p>
-              <p className="font-semibold">Hasil: </p>
-              <p>{res.Hasil.Komentar}</p>
-            </div>
+        return AIRes.map((res, index: number) => {
+          return <div key={index} className="flex flex-col p-5 gap-7 border-2 bg-white rounded-xl border-gray-300 text-black">
+            <h1 className="text-md font-semibold">{res?.Judul}</h1>
+            {res ?
+              Object.entries(res).map(([k, v]) => {
+                const value = v as NestedObject
+                return renderValues(value, k)
+              })
+              : null}
           </div>
         })
-
         break;
-
     }
-  }
+  }, [KomitmenChange, AIResState])
+
   return (
-    <div className="flex flex-col gap-3">
-      <h1 className="text-lg">AI Assistance</h1>
-      {loadingState()}
+    <div className="flex flex-col px-2 py-5 gap-3">
+      <h1 className="text-lg  px-3">AI Assistance</h1>
+      {loadingState ? loadingState : null}
     </div>
   )
 }

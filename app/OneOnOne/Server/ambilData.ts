@@ -33,7 +33,7 @@ export interface AIResponse {
   Tugas: NestedObject;
   Aksi: NestedObject;
   Hasil: NestedObject;
-  Judul: string;
+  Judul?: string;
 }
 
 function parseAIResponse(response: string, judul: string | undefined): AIResponse {
@@ -47,10 +47,13 @@ function parseAIResponse(response: string, judul: string | undefined): AIRespons
   };
 
   mainKeys.forEach((key) => {
-    const regex = new RegExp(`${key}\\s?:\\s?["']([^"']*)["'].*?Persentasi Kualitas:\\s?([^%]+%)\\s?-*\\s?Komentar:\\s?["']([^"']+)["']`, "i");
+    const regex = new RegExp(
+      `${key}(?:\\s?:\\s?|[*]{0,2})["']([^"']*)["'].*?Persentasi Kualitas:\\s?([^%]+%)\\s?-*\\s?Komentar:\\s?["']([^"']+)["']`,
+      "im"
+    );
     const match = response.match(regex);
     if (match) {
-      // @ts-ignore
+      //@ts-ignore
       obj[key] = {
         text: match[1] || "",
         Kualitas: match[2],
@@ -70,20 +73,22 @@ export async function vertexAISummarizer({ KomitmenAtasan, KomitmenBawahan, Cata
   const response = await vresponseStream.response
 
   const fulltextResponse = response.candidates[0].content.parts[0].text
+  console.log(fulltextResponse)
   return fulltextResponse
 
 }
 
 async function vertexAIStarChecker({ Judul, Isi }: KomitmenData) {
   const vrequest: GenerateContentRequest = {
-    contents: [{ role: "user", parts: [{ text: `data:{ Judul: '${Judul}', Isi: '${Isi}' }. Kriteria:{ 1: Situasi, 2: Tugas, 3:Aksi, 4:Hasil}. prompt: 'Evaluasi persentase kualitas pemenuhan setiap kriteria dalam kalimat-kalimat dari data.' jawab dengan mengikuti template berikut: '{Kriteria}: {text lengkap dari Isi yang memenuhi Kriteria !!DENGAN QUOTES!!} -Persentasi Kualitas: {nomor persentase dengan %} -Komentar:{alasan Persentasi tersebut dengan ringkas dan harus pakai quotes}...' Jangan Memakai asterisks ` },] }]
+    contents: [{ role: "user", parts: [{ text: `data:{ Judul: '${Judul}', Isi: '${Isi}' }. Kriteria:{ 1: Situasi, 2: Tugas, 3:Aksi, 4:Hasil}. prompt: 'Evaluasi persentase kualitas pemenuhan setiap kriteria dalam kalimat-kalimat dari data.' jawaban tidak boleh memiliki asterisks atau spesial karakter lain, hanya quotes,strip dan % yang diperbolehkan harus menjawab dengan mengikuti template berikut: '{Kriteria}: {text lengkap dari Isi yang memenuhi Kriteria !!DENGAN QUOTES!!} -Persentasi Kualitas: {nomor persentase dengan %} -Komentar:{alasan Persentasi tersebut dengan ringkas dan harus pakai quotes}...' ` },] }]
   }
 
-  const vresponseStream = await genModel.generateContentStream(vrequest)
+  const vresponseStream = await genModel.generateContent(vrequest)
   const responseText = await vresponseStream.response
 
   const fulltextResponse = responseText.candidates[0].content.parts[0].text
   const cobaObj = fulltextResponse ? parseAIResponse(fulltextResponse, Judul) : null;
+  console.log("\n\n\n", fulltextResponse, "anjing")
 
   return cobaObj;
 }
@@ -100,6 +105,7 @@ export async function testingdata(KomitmenDataArr: KomitmenData[]) {
   const results = await Promise.all(promises);
 
   const filteredResults = results.filter(result => result !== null);
+  console.log(filteredResults, "aduhh")
 
   return filteredResults
 }

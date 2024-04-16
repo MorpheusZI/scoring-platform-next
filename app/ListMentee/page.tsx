@@ -4,7 +4,7 @@ import { redirect, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { getMentees } from "./Server/GetMentees"
 import { Prisma, User } from "@prisma/client"
-import { UsersRound } from "lucide-react"
+import { Loader2, UsersRound } from "lucide-react"
 import Link from "next/link"
 import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
@@ -28,6 +28,7 @@ type Mentee = {
 export default function ListMentee() {
   const [UserData, setUserData] = useState<User | null>(null)
   const [MenteeLists, setMenteeLists] = useState<Mentee[] | undefined>([])
+  const [LoadingList, setLoadingList] = useState(true)
   const router = useRouter()
 
   function handleLogout() {
@@ -49,9 +50,11 @@ export default function ListMentee() {
   }, [])
 
   useEffect(() => {
+    setLoadingList(false)
     getMentees(UserData?.email).then((R) => {
       // @ts-ignore
       setMenteeLists(R)
+      setLoadingList(true)
     })
   }, [UserData])
   return (
@@ -79,13 +82,16 @@ export default function ListMentee() {
             <p className="col-span-2">Nama Aggota</p>
             <p className="col-span-1">Action</p>
           </div>
-          <div className="divide-y divide-black/50">
-            {MenteeLists?.map((Mentee, index) => {
+          <div >
+            {LoadingList && MenteeLists ? MenteeLists.map((Mentee, index) => {
               return <div key={index} className="grid items-center w-full grid-cols-3 py-2 px-5 gap-1 border-2 border-black">
                 <p className="col-span-2">{Mentee.username}</p>
                 <Button className="w-fit" onClick={() => handleMulaiInteraksi(Mentee)} disabled={Mentee.Documents.length <= 0}>Mulai Interaksi</Button>
               </div>
-            })}
+            }) : <div className="flex py-12 w-full gap-4 items-center justify-center border-2 border-black">
+              <Loader2 className="w-12 h-12 animate-spin text-black" />
+              <p className="text-lg">Loading</p>
+            </div>}
           </div>
         </div>
       </div>

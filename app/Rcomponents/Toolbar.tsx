@@ -8,6 +8,7 @@ import {
   ListOrdered,
   Underline,
   Quote,
+  SeparatorVertical,
 } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import { Toggle } from '../../components/ui/toggle'
@@ -19,7 +20,7 @@ type ToolBarProps = {
 export default function ToolBar({ editor }: ToolBarProps) {
   return (
     <div className="flex w-full p-2 border-b-2 border-black bg-gray-100">
-      <div className="flex w-fit pe-1 border-r-2 border-black">
+      <div className="flex w-fit pe-1">
         <Toggle
           size="sm"
           pressed={editor?.isActive("bold")}
@@ -49,7 +50,7 @@ export default function ToolBar({ editor }: ToolBarProps) {
           <Strikethrough />
         </Toggle>
       </div>
-      <div className="flex w-fit items-center px-2 border-r-2 border-black">
+      <div className="flex w-fit items-center px-2 ">
         <Toggle
           size="sm"
           pressed={editor?.isActive("blockquote")}
