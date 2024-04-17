@@ -73,7 +73,6 @@ export async function vertexAISummarizer({ KomitmenAtasan, KomitmenBawahan, Cata
   const response = await vresponseStream.response
 
   const fulltextResponse = response.candidates[0].content.parts[0].text
-  console.log(fulltextResponse)
   return fulltextResponse
 
 }

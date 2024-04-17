@@ -7,6 +7,7 @@ import { User } from '@prisma/client'
 import { KomitmenData } from '../../LaporanComponents/PreInteraksi/Laporan'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
+import Link from 'next/link'
 export default function Home({ params }: { params: { RoomName: string } }) {
   const [UserData, setUserData] = useState<User | null>()
   const [SummaryCall, setSummaryCall] = useState(false)
@@ -36,7 +37,12 @@ export default function Home({ params }: { params: { RoomName: string } }) {
           <h1 className="text-3xl font-bold">Interaksi</h1>
           <p className="text-sm">Project IDP Product Designer</p>
         </div>
-        <Button onClick={() => setSummaryCall(!SummaryCall)}>Simpan</Button>
+        <div className="flex gap-2">
+          <Button asChild variant="link">
+            <Link className="hover:text-purple-400" href={"/ListMentee"}>Kembali</Link>
+          </Button>
+          <Button onClick={() => setSummaryCall(!SummaryCall)}>Simpan</Button>
+        </div>
       </div>
       <div className="flex">
         <div className="w-[70%] border-r-2 border-r-black h-[85vh] overflow-y-auto ">

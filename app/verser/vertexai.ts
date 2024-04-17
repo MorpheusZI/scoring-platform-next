@@ -5,7 +5,7 @@ const project = process.env.GC_SA_PID ? process.env.GC_SA_PID : ''
 const region = process.env.GC_SA_PROJECT_REGION ? process.env.GC_SA_PROJECT_REGION : ""
 const textModel = 'gemini-1.0-pro-001'
 
-const GC_Credentials: JWTInput = {
+export const GC_Credentials: JWTInput = {
   type: process.env.GC_SA_TYPE,
   client_id: process.env.GC_SA_CLIENT_ID,
   project_id: project,

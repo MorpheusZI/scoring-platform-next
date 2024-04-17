@@ -17,6 +17,7 @@ import { Document, User } from '@prisma/client';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { AmbilPreDocument } from '../../Server/BikinDocument';
 import { SummaryReq, vertexAISummarizer } from '../../Server/ambilData';
+// import { WriteToExcel } from '../../Server/Gsheet';
 
 type LaporanProps = {
   User: User | null;
@@ -50,51 +51,58 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
     },
   })
 
-  const editorOptions: Partial<EditorOptions> | undefined = {
-    extensions: [
-      StarterKit.configure({
-        blockquote: {
-          HTMLAttributes: {
-            class: "ml-5 px-3 border-l-2 border-gray-400"
+  const editorOptions = (type?: string) => {
+    const editor: Partial<EditorOptions> | undefined = {
+      extensions: [
+        StarterKit.configure({
+          blockquote: {
+            HTMLAttributes: {
+              class: "ml-5 px-3 border-l-2 border-gray-400"
+            },
           },
-        },
-        bulletList: {
-          HTMLAttributes: {
-            class: "mx-6 px-2 list-disc list-outside "
-          }
-        }, orderedList: {
-          HTMLAttributes: {
-            class: "mx-7 list-decimal list-outside "
-          }
-        },
+          bulletList: {
+            HTMLAttributes: {
+              class: "mx-6 px-2 list-disc list-outside "
+            }
+          }, orderedList: {
+            HTMLAttributes: {
+              class: "mx-7 list-decimal list-outside "
+            }
+          },
 
-      }),
-      Underline,
-      customTaskList,
-      TaskItem,
-      Placeholder.configure({
-        placeholder: "CTRL+K Untuk menambah komitmen",
-        emptyEditorClass: "first:before:h-0 first:before:text-gray-400 first:before:content-[attr(data-placeholder)] first:before:float-left"
-      }),
-    ],
-    editorProps: {
-      attributes: {
-        class: "w-full py-4 text-black outline-none",
-      }
-    },
+        }),
+        Underline,
+        customTaskList,
+        TaskItem,
+        Placeholder.configure({
+          placeholder: ({ node }) => {
+            if (type) {
+              return "Tulis Catatan"
+            }
+            return "CTRL+K Untuk Membuat Komitmen"
+          },
+          emptyEditorClass: "first:before:h-0 first:before:text-gray-400 first:before:content-[attr(data-placeholder)] first:before:float-left"
+        }),
+      ],
+      editorProps: {
+        attributes: {
+          class: "w-full py-4 text-black outline-none",
+        }
+      },
+    }
+    return editor
   }
-
-  const PreInteraksiEditor = useEditor(editorOptions)
+  const PreInteraksiEditor = useEditor(editorOptions())
   useEffect(() => {
     if (!KomitmenBawahanContent) return
     PreInteraksiEditor?.commands.setContent(KomitmenBawahanContent)
     // @ts-ignore
   }, [KomitmenBawahanContent])
 
-  const KomitmenAtasanEditor = useEditor(editorOptions)
-  const Catatan = useEditor(editorOptions)
+  const KomitmenAtasanEditor = useEditor(editorOptions())
+  const Catatan = useEditor(editorOptions("catatan"))
 
-  function handleSummarize() {
+  function handleSave() {
     const DataSummary: SummaryReq = {
       KomitmenAtasan: KomitmenAtasanEditor?.getText(),
       KomitmenBawahan: PreInteraksiEditor?.getText(),
@@ -102,13 +110,13 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
       NamaManager: User?.username,
       NamaMentee: Mentee?.username
     }
-
     const aiSummary = vertexAISummarizer(DataSummary).then((res) => SummaryFuncToSideBar(res))
+    // WriteToExcel().then(r => console.log("yup", r))
   }
 
   useEffect(() => {
-    if (!KomitmenBawahanContent) return
-    handleSummarize()
+    if (!KomitmenBawahanContent || KomitmenAtasanEditor?.getText() === null || Catatan?.getText() === null) return
+    handleSave()
   }, [CallSummary])
 
   return (

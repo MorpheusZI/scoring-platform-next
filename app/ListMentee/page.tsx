@@ -73,7 +73,7 @@ export default function ListMentee() {
               </div>
             </Link>
           </Button>
-          <Button onClick={handleLogout}>Keluar</Button>
+          <Button onClick={handleLogout}>Log Off</Button>
         </div>
       </div>
       <div className="flex w-full p-20 flex-col justify-center items-center">

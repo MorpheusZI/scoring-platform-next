@@ -27,9 +27,9 @@ import { toast } from '@/components/ui/use-toast';
 
 type LaporanProps = {
   handleKomitmenDatatoAI?: (KomDataArr: KomitmenData[] | undefined) => void
-  handleSavingStatus?: (Status: string) => void
   User: User | null;
-  FuncCaller: boolean;
+  FuncCaller?: boolean;
+  handleSavingStatus?: (Status: string) => void
 }
 
 type KomitmenData = {
@@ -121,13 +121,12 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       customTaskList,
       TaskItem,
       Placeholder.configure({
-        placeholder: ({ node }) => {
-          if (node.type.name === 'taskList') {
-            return "Tab Untuk mendeskripsikan Komitmen"
+        placeholder: ({ editor, node }) => {
+          if (node.type.name === "listItem") {
+            return "this is a taskList"
           }
-          return "CTRL + K Untuk menambahkan Komitmen"
+          return "This an empty node"
         },
-        emptyEditorClass: "first:before:h-1 first:before:text-gray-400 first:before:content-[attr(data-placeholder)] first:before:float-left first:before:z-10",
         considerAnyAsEmpty: true,
       }),
     ],
@@ -189,20 +188,8 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
             <h1>Pilih manager untuk laporan ini</h1>
             <div className="w-fit">
-              {getDefaultManagerValue !== undefined ?
+              {getDefaultManagerValue !== undefined &&
                 <Select defaultValue={getDefaultManagerValue?.email} onValueChange={value => handleSelectManagerChange(value)}>
-                  <SelectTrigger className="gap-5">
-                    <SelectValue placeholder="Pilih manager" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {filteredManagers.map((manager, index) => {
-                        return <SelectItem value={manager.email} key={index}>{manager.username}</SelectItem>
-                      })}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select> :
-                <Select onValueChange={value => handleSelectManagerChange(value)}>
                   <SelectTrigger className="gap-5">
                     <SelectValue placeholder="Pilih manager" />
                   </SelectTrigger>
