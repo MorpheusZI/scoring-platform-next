@@ -44,6 +44,7 @@ export type EditorTextandHTML = {
 
 export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, handleSavingStatus }: LaporanProps) {
   const [Managers, setManager] = useState<User[]>([])
+  const [defaultManager, setDefaultManager] = useState<User | undefined>()
 
   const [DisabledAI, setDisabledAI] = useState(false)
   const [prevEditorContentCheck, setprevEditorContentCheck] = useState<string | undefined>("")
@@ -80,6 +81,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   const getDefaultManagerValue = useMemo(() => {
     if (!Managers && !User) return
     const manag = Managers.find((m) => m.email === User?.manager)
+    setDefaultManager(manag)
     return manag
   }, [Managers, User])
 
@@ -92,7 +94,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   })
 
   const aditor = useEditor({
-    onUpdate: () => {
+    onUpdate: ({ editor }) => {
       if (prevEditorContentCheck === aditor?.getText()) {
         setDisabledAI(true)
       } else {
@@ -121,13 +123,13 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       customTaskList,
       TaskItem,
       Placeholder.configure({
+        showOnlyCurrent: false,
         placeholder: ({ editor, node }) => {
-          if (node.type.name === "listItem") {
-            return "this is a taskList"
+          if (editor?.can().splitListItem('taskList')) {
+            return "CTRL + K Lagi untuk mendeskripsikan"
           }
-          return "This an empty node"
+          return "CTRL + K Untuk menambah komitmen"
         },
-        considerAnyAsEmpty: true,
       }),
     ],
     editorProps: {
@@ -145,6 +147,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       HTML: aditor?.getHTML(),
       Content: aditor?.getText()
     }
+
     const res = BikinDocument(ReturnObject, User?.UserID, "KomitmenBawahan").then(r => handleSavingStatus("Saved"))
     return ReturnObject
   }
@@ -170,6 +173,14 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
   const handleAIassist = () => {
     if (!handleKomitmenDatatoAI) return
+    if (dataList?.map((m) => m.Isi === "")) {
+      toast({
+        title: "Belum lengkap!",
+        description: "Ada beberapa komitmen yang belum di deskripsikan",
+        variant: "destructive"
+      })
+      return
+    }
     handleKomitmenDatatoAI(dataList)
     setDisabledAI(true)
     setprevEditorContentCheck(aditor?.getText())
@@ -188,8 +199,8 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
             <h1>Pilih manager untuk laporan ini</h1>
             <div className="w-fit">
-              {getDefaultManagerValue !== undefined ?
-                <Select defaultValue={getDefaultManagerValue?.email} onValueChange={value => handleSelectManagerChange(value)}>
+              {defaultManager ?
+                <Select defaultValue={defaultManager.email} onValueChange={value => handleSelectManagerChange(value)}>
                   <SelectTrigger className="gap-5">
                     <SelectValue placeholder="Pilih manager" />
                   </SelectTrigger>

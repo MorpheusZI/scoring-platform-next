@@ -23,7 +23,7 @@ export async function BikinDocument(Document: EditorTextandHTML, UserID: number 
 }
 
 export async function AmbilPreDocument(UserID: number) {
-  const Document = await prisma.document.findFirst({
+  const Document = await prisma.document.findMany({
     where: {
       OwnerUserID: UserID,
       DocType: "KomitmenBawahan"
@@ -32,5 +32,5 @@ export async function AmbilPreDocument(UserID: number) {
       user: true
     }
   })
-  return Document
+  return Document[Document.length - 1]
 }

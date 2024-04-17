@@ -1,5 +1,5 @@
 import '../LaporStyles.css'
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 // tipTap imports
 import { useEditor, Editor, EditorContent, JSONContent, EditorOptions } from '@tiptap/react';
 import { Underline } from '@tiptap/extension-underline';
@@ -16,8 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Document, User } from '@prisma/client';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { AmbilPreDocument } from '../../Server/BikinDocument';
-import { SummaryReq, vertexAISummarizer } from '../../Server/ambilData';
-// import { WriteToExcel } from '../../Server/Gsheet';
+import { SummaryReq, getManagers, vertexAISummarizer } from '../../Server/ambilData';
+import { ExcelData, WriteToExcel } from '../../Server/Gsheet';
 
 type LaporanProps = {
   User: User | null;
@@ -29,7 +29,6 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
   const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
   const [Mentee, setMentee] = useState<User | null>()
   const [KomitmenBawahanContent, setKomitmenBawahaContent] = useState<string | null | undefined>(null)
-
   useEffect(() => {
     const MenteeData = sessionStorage.getItem('MenteeData')
     const MenteeDat = MenteeData ? JSON.parse(MenteeData) : null
@@ -76,12 +75,16 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
         TaskItem,
         Placeholder.configure({
           placeholder: ({ node }) => {
+            if (node.type.name === "taskItem") {
+              return "Tab untuk mendeskripsikan Komitmen"
+            }
             if (type) {
               return "Tulis Catatan"
             }
             return "CTRL+K Untuk Membuat Komitmen"
           },
-          emptyEditorClass: "first:before:h-0 first:before:text-gray-400 first:before:content-[attr(data-placeholder)] first:before:float-left"
+          emptyEditorClass: "first:before:h-0 first:before:text-gray-400 first:before:content-[attr(data-placeholder)] first:before:float-left",
+          showOnlyCurrent: false,
         }),
       ],
       editorProps: {
@@ -102,16 +105,33 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
   const KomitmenAtasanEditor = useEditor(editorOptions())
   const Catatan = useEditor(editorOptions("catatan"))
 
+  const memoSaveExcel = (ExcDat: ExcelData) => {
+    console.log(ExcDat)
+    WriteToExcel(ExcDat).then(r => console.log("yup"))
+  }
   function handleSave() {
+    if (!User) return
+    if (!Mentee) return
     const DataSummary: SummaryReq = {
       KomitmenAtasan: KomitmenAtasanEditor?.getText(),
       KomitmenBawahan: PreInteraksiEditor?.getText(),
       Catatan: Catatan?.getText(),
-      NamaManager: User?.username,
-      NamaMentee: Mentee?.username
+      NamaManager: User.username,
+      NamaMentee: Mentee.username
     }
-    const aiSummary = vertexAISummarizer(DataSummary).then((res) => SummaryFuncToSideBar(res))
-    // WriteToExcel().then(r => console.log("yup", r))
+    const ExcelData: ExcelData = {
+      member: Mentee.username,
+      manager: User.username,
+      created_at: new Date(),
+      komitmen_member: PreInteraksiEditor?.getText(),
+      komitmen_atasan: KomitmenAtasanEditor?.getText()
+    }
+    const aiSummary = vertexAISummarizer(DataSummary).then((res) => {
+      SummaryFuncToSideBar(res)
+      setTimeout(() => {
+        memoSaveExcel({ ...ExcelData, summary: res })
+      }, 300)
+    })
   }
 
   useEffect(() => {

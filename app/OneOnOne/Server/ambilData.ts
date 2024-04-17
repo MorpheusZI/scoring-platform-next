@@ -67,7 +67,7 @@ function parseAIResponse(response: string, judul: string | undefined): AIRespons
 
 export async function vertexAISummarizer({ KomitmenAtasan, KomitmenBawahan, Catatan, NamaMentee, NamaManager }: SummaryReq) {
   const summarryReq: GenerateContentRequest = {
-    contents: [{ role: "user", parts: [{ text: `data:{KomitmenAtasan: ${KomitmenAtasan},KomitmenBawahan: ${KomitmenBawahan},Catatan: ${Catatan}, NamaAtasan: ${NamaManager},NamaBawahan: ${NamaMentee}}. prompt = Dari hasil komitmen atasan, komitmen bawahan, dan catatan, buatkan summary hanya dalam 1 paragraf makismal 5 Kalimat. Notes: Catatan dimiliki oleh Atasan` }] }]
+    contents: [{ role: "user", parts: [{ text: `data:{KomitmenAtasan: ${KomitmenAtasan},KomitmenBawahan: ${KomitmenBawahan},Catatan: ${Catatan}, NamaAtasan: ${NamaManager},NamaKaryawan: ${NamaMentee}}. prompt = Dari hasil komitmen atasan, komitmen bawahan, dan catatan, buatkan summary hanya dalam 1 paragraf makismal 5 Kalimat. Notes: Catatan dimiliki oleh Atasan` }] }]
   }
   const vresponseStream = await genModel.generateContentStream(summarryReq)
   const response = await vresponseStream.response

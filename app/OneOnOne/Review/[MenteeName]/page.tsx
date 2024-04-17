@@ -17,9 +17,10 @@ export default function Home({ params }: { params: { RoomName: string } }) {
   function handleSumarry(aiResp: string | undefined) {
     setSummaryText(aiResp)
     toast({
-      description: "Interaksi anda sudah disimpan"
+      title: "Tersimpan!",
+      description: "Interaksi anda sudah disimpan",
+      duration: 2000
     })
-    console.log("hielo")
   }
 
   useEffect(() => {

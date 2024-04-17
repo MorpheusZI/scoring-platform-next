@@ -21,10 +21,14 @@ export default function Sidebar({ aiResp, SummaryCall }: SideBarRevProps) {
   const displayedSummary = aiResp ? (
     isExpanded ? aiResp : aiResp.substring(0, maxSummaryLength) + '...'
   ) : (
-    <p className="text-sm">Summary akan muncul setalah Interaksi selesai</p>
+    "Summary akan muncul setalah Interaksi selesai"
   );
 
   const handleReadMore = () => setIsExpanded(!isExpanded);
+  const renderSeeMore = () => {
+    if (!aiResp) return
+    return <span className="text-xs px-4 text-purple-400 hover:cursor-pointer" onClick={handleReadMore}>{!isExpanded ? "Selengkapnya" : "Read less"}</span>
+  }
   const renderedGuides = PickedTopics.map((topic, index) => {
     const findSubtopics = Subtopics.find((subtopic) => subtopic.SubTopicTitle === topic)
     const guides = findSubtopics?.Guides
@@ -46,10 +50,12 @@ export default function Sidebar({ aiResp, SummaryCall }: SideBarRevProps) {
         <div className="flex w-full flex-col px-5 py-4 gap-5 ">
           <div className="sommary flex flex-col gap-3">
             <h1 className="text-lg ">Summary </h1>
-            {displayedSummary}
-            <Button className="mt-[-1rem]" variant="link" onClick={handleReadMore}>
-              {isExpanded ? 'Read less' : 'Read more...'}
-            </Button>
+            <div>
+              <p>{displayedSummary}
+                {renderSeeMore()}
+              </p>
+            </div>
+
           </div>
           <hr className="border-2 border-gray-300 rounded" />
           <div className="gaide flex flex-col gap-2">
