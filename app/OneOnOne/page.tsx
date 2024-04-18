@@ -3,7 +3,6 @@ import ShortUniqueId from 'short-unique-id'
 import { useState, useEffect } from 'react'
 import { Document, User } from '@prisma/client'
 import { redirect } from 'next/navigation'
-import { AmbilPreDocument } from './Server/BikinDocument'
 
 export interface UserData {
   User: User,
@@ -13,7 +12,6 @@ export interface UserData {
 export default function Home() {
   const [DocUID, setDocUID] = useState<string | null>(null)
   const [UserData, setUserData] = useState<UserData | null>()
-  const uid = new ShortUniqueId({ length: 5 })
   useEffect(() => {
     // const Userdata = localStorage.getItem('UserStore')
     // const res = setUserData(Userdata ? JSON.parse(Userdata) : null)

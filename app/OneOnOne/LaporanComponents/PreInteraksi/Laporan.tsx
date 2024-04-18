@@ -18,9 +18,9 @@ import { Sparkles } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { DropdownMenuGroup, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from "@/components/ui/button";
-import { User } from '@prisma/client';
+import { Document, User } from '@prisma/client';
 import { Select, SelectValue, SelectContent, SelectGroup, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { BikinDocument } from '../../Server/BikinDocument';
+import { AmbilPreDocument, BikinDocument, UpdatePreDocument } from '../../Server/BikinDocument';
 import { Subtopics } from '../../Server/Topics';
 import { redirect } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
@@ -48,6 +48,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
   const [DisabledAI, setDisabledAI] = useState(false)
   const [prevEditorContentCheck, setprevEditorContentCheck] = useState<string | undefined>("")
+  const [PreDocumetCheck, setPreDocumetCheck] = useState<Document | undefined | null>()
 
   useEffect(() => {
     const Userdata = localStorage.getItem('UserStore')
@@ -60,8 +61,26 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   }, [])
 
   useEffect(() => {
+    if (!User) return
+    if (!Managers) return
+    const manag = Managers.find((man) => man.email === User.email)
+    if (!manag) return
+    AmbilPreDocument(User.UserID, manag?.UserID).then(r => {
+      if (r === undefined) {
+        setPreDocumetCheck(undefined)
+        return
+      }
+      setPreDocumetCheck(r)
+    })
+  }, [User, FuncCaller, Managers])
+
+  useEffect(() => {
     getHTMLandContent()
   }, [FuncCaller])
+  useEffect(() => {
+    if (!PreDocumetCheck) return
+    aditor?.commands.setContent(PreDocumetCheck?.memberHTML)
+  }, [PreDocumetCheck])
 
   function handleSelectManagerChange(val: string) {
     if (User) {
@@ -141,14 +160,28 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
   function getHTMLandContent() {
     if (aditor?.getText() === undefined || aditor.getHTML() === undefined) return
+    if (!User) return
     if (!handleSavingStatus) return
     handleSavingStatus("Saving")
     const ReturnObject: EditorTextandHTML = {
       HTML: aditor?.getHTML(),
       Content: aditor?.getText()
     }
-
-    const res = BikinDocument(ReturnObject, User?.UserID, "KomitmenBawahan").then(r => handleSavingStatus("Saved"))
+    if (PreDocumetCheck) {
+      console.log(PreDocumetCheck)
+      const update = UpdatePreDocument(ReturnObject, User?.UserID,).then(r => {
+        console.log("anjing", r)
+        if (!r) return
+        handleSavingStatus("Saved")
+      })
+      return
+    }
+    const manag = Managers.find((man) => man.email === User.manager)
+    const res = BikinDocument(ReturnObject, User, manag).then(r => {
+      console.log(r, "Anjing")
+      if (!r) return
+      handleSavingStatus("Saved")
+    })
     return ReturnObject
   }
 
@@ -173,7 +206,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
   const handleAIassist = () => {
     if (!handleKomitmenDatatoAI) return
-    if (dataList?.map((m) => m.Isi === "")) {
+    if (dataList && dataList?.filter((m) => m.Isi === undefined).length > 0) {
       toast({
         title: "Belum lengkap!",
         description: "Ada beberapa komitmen yang belum di deskripsikan",

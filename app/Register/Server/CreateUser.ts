@@ -15,9 +15,6 @@ export const createUser = async (user: UserServe) => {
       password: user.password,
       username: user.username,
     },
-    include: {
-      Documents: true,
-    }
   })
   return userRes
 }

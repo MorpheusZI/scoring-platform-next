@@ -14,30 +14,23 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
-enum DocumentType {
-  KomitmenBawahan
-  KomitmenAtasan
-  Catatan
-}
-
-// Define the User table
 model User {
-  UserID    Int        @id @default(autoincrement())
-  username  String
-  password  String
-  email     String     @unique
-  manager   String?
-  Documents Document[]
+  UserID   Int     @id @default(autoincrement())
+  username String
+  password String
+  email    String  @unique
+  manager  String?
 }
 
-// Define the Document table
 model Document {
-  DocID       Int          @id @default(autoincrement())
-  DocContent  String?
-  DocHTML     String?
-  DocType     DocumentType
-  updated_at  DateTime     @updatedAt
-  created_at  DateTime     @default(now())
-  user        User?        @relation(fields: [OwnerUserID], references: [UserID])
-  OwnerUserID Int?
+  DocID          Int      @id @default(autoincrement())
+  memberContent  String?
+  memberHTML     String?
+  memberID       Int?      @unique
+  managerContent String?
+  managerHTML    String?
+  managerID      Int?      @unique
+  Catatan        String?
+  Summary        String?
+  created_at     DateTime @default(now())
 }

@@ -9,9 +9,6 @@ export const checkUser = async (emailp: string, passwordp: string) => {
       email: emailp,
       password: passwordp
     },
-    include: {
-      Documents: true
-    }
   })
   return useres
 }

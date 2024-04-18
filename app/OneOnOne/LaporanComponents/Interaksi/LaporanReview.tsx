@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from "@/components/ui/button";
 import { Document, User } from '@prisma/client';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { AmbilPreDocument } from '../../Server/BikinDocument';
+import { AmbilPreDocument, BikinDocument, InteraksiContents, UpdateInterDocument } from '../../Server/BikinDocument';
 import { SummaryReq, getManagers, vertexAISummarizer } from '../../Server/ambilData';
 import { ExcelData, WriteToExcel } from '../../Server/Gsheet';
 
@@ -38,7 +38,8 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
 
   useEffect(() => {
     if (!Mentee) return
-    AmbilPreDocument(Mentee.UserID).then(Doc => setKomitmenBawahaContent(Doc?.DocHTML))
+    if (!User) return
+    AmbilPreDocument(Mentee.UserID, User.UserID).then(Doc => setKomitmenBawahaContent(Doc?.memberHTML))
     // @ts-ignore
   }, [Mentee])
 
@@ -128,8 +129,15 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
     }
     const aiSummary = vertexAISummarizer(DataSummary).then((res) => {
       SummaryFuncToSideBar(res)
+      const InterData: InteraksiContents = {
+        Komitmen_Manager_Content: KomitmenAtasanEditor?.getText(),
+        Komitmen_Manager_HTML: KomitmenAtasanEditor?.getHTML(),
+        Catatan: Catatan?.getHTML(),
+        Summary: res
+      }
       setTimeout(() => {
         memoSaveExcel({ ...ExcelData, summary: res })
+        UpdateInterDocument(InterData, User, Mentee)
       }, 300)
     })
   }

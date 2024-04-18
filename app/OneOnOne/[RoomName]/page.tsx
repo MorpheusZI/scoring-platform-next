@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react'
 import Sidebar from "../LaporanComponents/PreInteraksi/Sidebar"
-import Laporan, { EditorTextandHTML, KomitmenData } from '../LaporanComponents/PreInteraksi/Laporan'
+import { EditorTextandHTML, KomitmenData } from '../LaporanComponents/PreInteraksi/Laporan'
+import Laporan from '../LaporanComponents/PreInteraksi/Laporan'
 import { redirect } from 'next/navigation'
 import { User } from '@prisma/client'
 import Loading from './loading'

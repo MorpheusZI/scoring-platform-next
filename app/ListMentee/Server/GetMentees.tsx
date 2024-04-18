@@ -7,9 +7,15 @@ export async function getMentees(managerz: string | undefined) {
     where: {
       manager: managerz
     },
-    include: {
-      Documents: true
-    }
   })
   return Menteez
+}
+export async function getDocs(MenteeID: number, ManID: number) {
+  const docs = await prisma.document.findMany({
+    where: {
+      memberID: MenteeID,
+      managerID: ManID
+    }
+  })
+  return docs
 }
