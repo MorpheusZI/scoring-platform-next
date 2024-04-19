@@ -19,3 +19,11 @@ export async function getDocs(MenteeID: number, ManID: number) {
   })
   return docs
 }
+export async function getDocByDocID(DocID: number) {
+  const doc = await prisma.document.findUnique({
+    where: {
+      DocID: DocID
+    }
+  })
+  return doc
+}

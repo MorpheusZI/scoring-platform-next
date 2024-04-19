@@ -15,33 +15,46 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from "@/components/ui/button";
 import { Document, User } from '@prisma/client';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { AmbilPreDocument, BikinDocument, InteraksiContents, UpdateInterDocument } from '../../Server/BikinDocument';
+import { AmbilPreDocument, BikinDocument, BikinInterDocument, InteraksiContents, MinteraksiContents, UpdateInterDocument } from '../../Server/BikinDocument';
 import { SummaryReq, getManagers, vertexAISummarizer } from '../../Server/ambilData';
 import { ExcelData, WriteToExcel } from '../../Server/Gsheet';
+import { getDocByDocID, getDocs } from '@/app/ListMentee/Server/GetMentees';
+import { preinit } from 'react-dom';
 
 type LaporanProps = {
   User: User | null;
   CallSummary: boolean;
   SummaryFuncToSideBar: (aiResp: string | undefined) => void;
+  CurrentDocID: number | undefined;
 }
 
-export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: LaporanProps) {
+export default function Laporan({ User, CallSummary, SummaryFuncToSideBar, CurrentDocID }: LaporanProps) {
   const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
   const [Mentee, setMentee] = useState<User | null>()
-  const [KomitmenBawahanContent, setKomitmenBawahaContent] = useState<string | null | undefined>(null)
   useEffect(() => {
     const MenteeData = sessionStorage.getItem('MenteeData')
     const MenteeDat = MenteeData ? JSON.parse(MenteeData) : null
     setMentee(MenteeDat)
     // @ts-ignore
   }, [])
-
+  useEffect(() => {
+    if (!CurrentDocID) return
+    getDocByDocID(CurrentDocID).then((Doc) => {
+      if (!Doc) return
+      PreInteraksiEditor?.commands.setContent(Doc.memberHTML)
+      KomitmenAtasanEditor?.commands.setContent(Doc.managerHTML)
+      Catatan?.commands.setContent(Doc.Catatan)
+    })
+  }, [Mentee, User, CurrentDocID])
   useEffect(() => {
     if (!Mentee) return
     if (!User) return
-    AmbilPreDocument(Mentee.UserID, User.UserID).then(Doc => setKomitmenBawahaContent(Doc?.memberHTML))
+    AmbilPreDocument(Mentee.UserID, User.UserID).then(Doc => {
+      if (!Doc) return
+      PreInteraksiEditor?.commands.setContent(Doc?.memberHTML)
+    })
     // @ts-ignore
-  }, [Mentee])
+  }, [Mentee, User])
 
   const customTaskList = TaskList.extend({
     addKeyboardShortcuts() {
@@ -97,19 +110,13 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
     return editor
   }
   const PreInteraksiEditor = useEditor(editorOptions())
-  useEffect(() => {
-    if (!KomitmenBawahanContent) return
-    PreInteraksiEditor?.commands.setContent(KomitmenBawahanContent)
-    // @ts-ignore
-  }, [KomitmenBawahanContent])
-
   const KomitmenAtasanEditor = useEditor(editorOptions())
   const Catatan = useEditor(editorOptions("catatan"))
 
   const memoSaveExcel = (ExcDat: ExcelData) => {
-    console.log(ExcDat)
     WriteToExcel(ExcDat).then(r => console.log("yup"))
   }
+
   function handleSave() {
     if (!User) return
     if (!Mentee) return
@@ -127,6 +134,7 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
       komitmen_member: PreInteraksiEditor?.getText(),
       komitmen_atasan: KomitmenAtasanEditor?.getText()
     }
+
     const aiSummary = vertexAISummarizer(DataSummary).then((res) => {
       SummaryFuncToSideBar(res)
       const InterData: InteraksiContents = {
@@ -135,15 +143,27 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar }: Lap
         Catatan: Catatan?.getHTML(),
         Summary: res
       }
-      setTimeout(() => {
-        memoSaveExcel({ ...ExcelData, summary: res })
-        UpdateInterDocument(InterData, User, Mentee)
-      }, 300)
+      const MinterData: MinteraksiContents = {
+        memberContent: PreInteraksiEditor?.getText(),
+        memberHTML: PreInteraksiEditor?.getHTML(),
+        managerHTML: KomitmenAtasanEditor?.getHTML(),
+        managerContent: KomitmenAtasanEditor?.getText(),
+        Summary: res,
+        Catatan: Catatan?.getHTML()
+      }
+      memoSaveExcel({ ...ExcelData, summary: res })
+      getDocs(Mentee.UserID, User.UserID).then(Docs => Docs.find((doc) => doc.memberID === Mentee.UserID && doc.managerID === User.UserID)).then(doc => {
+        if (doc?.managerContent) {
+          BikinInterDocument(MinterData, User, Mentee)
+        } else {
+          UpdateInterDocument(InterData, User, Mentee, doc?.DocID)
+        }
+        console.log("udah woi")
+      })
     })
   }
 
   useEffect(() => {
-    if (!KomitmenBawahanContent || KomitmenAtasanEditor?.getText() === null || Catatan?.getText() === null) return
     handleSave()
   }, [CallSummary])
 

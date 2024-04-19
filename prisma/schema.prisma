@@ -26,10 +26,10 @@ model Document {
   DocID          Int      @id @default(autoincrement())
   memberContent  String?
   memberHTML     String?
-  memberID       Int?      @unique
+  memberID       Int?      
   managerContent String?
   managerHTML    String?
-  managerID      Int?      @unique
+  managerID      Int?      
   Catatan        String?
   Summary        String?
   created_at     DateTime @default(now())

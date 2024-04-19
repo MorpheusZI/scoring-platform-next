@@ -12,6 +12,7 @@ export default function Home({ params }: { params: { RoomName: string } }) {
   const [UserData, setUserData] = useState<User | null>()
   const [SummaryCall, setSummaryCall] = useState(false)
   const [SumarryText, setSummaryText] = useState<string | undefined>()
+  const [DocID, setDocID] = useState<number | undefined>()
   const { toast } = useToast()
 
   function handleSumarry(aiResp: string | undefined) {
@@ -21,6 +22,10 @@ export default function Home({ params }: { params: { RoomName: string } }) {
       description: "Interaksi anda sudah disimpan",
       duration: 2000
     })
+  }
+
+  function handleChangeDoc(DocID: number) {
+    setDocID(DocID)
   }
 
   useEffect(() => {
@@ -47,10 +52,10 @@ export default function Home({ params }: { params: { RoomName: string } }) {
       </div>
       <div className="flex">
         <div className="w-[70%] border-r-2 border-r-black h-[85vh] overflow-y-auto ">
-          <Laporan User={UserData ? UserData : null} CallSummary={SummaryCall} SummaryFuncToSideBar={handleSumarry} />
+          <Laporan CurrentDocID={DocID} User={UserData ? UserData : null} CallSummary={SummaryCall} SummaryFuncToSideBar={handleSumarry} />
         </div>
         <div className="w-[30%] border-r-2 border-r-black">
-          <Sidebar aiResp={SumarryText} SummaryCall={SummaryCall} />
+          <Sidebar ChangeDocID={handleChangeDoc} User={UserData} aiResp={SumarryText} SummaryCall={SummaryCall} />
         </div>
       </div>
     </div>

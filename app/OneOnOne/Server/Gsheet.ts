@@ -43,6 +43,6 @@ export async function WriteToExcel(ExcelData: ExcelData) {
     komitmen_member: ExcelData.komitmen_member,
     komitmen_atasan: ExcelData.komitmen_atasan,
   })
-  return addedRow.rowNumber.toString
+  return addedRow.rowNumber.toString()
 }
 

@@ -63,13 +63,9 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   useEffect(() => {
     if (!User) return
     if (!Managers) return
-    const manag = Managers.find((man) => man.email === User.email)
+    const manag = Managers.find((man) => man.email === User.manager)
     if (!manag) return
     AmbilPreDocument(User.UserID, manag?.UserID).then(r => {
-      if (r === undefined) {
-        setPreDocumetCheck(undefined)
-        return
-      }
       setPreDocumetCheck(r)
     })
   }, [User, FuncCaller, Managers])
@@ -108,6 +104,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     addKeyboardShortcuts() {
       return {
         'Mod-k': () => this.editor.commands.toggleTaskList(),
+        'Tab': () => this.editor.commands.toggleTaskList()
       }
     },
   })
@@ -147,7 +144,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
           if (editor?.can().splitListItem('taskList')) {
             return "CTRL + K Lagi untuk mendeskripsikan"
           }
-          return "CTRL + K Untuk menambah komitmen"
+          return "(Ctrl + K) untuk menambah komitmen, (Enter) lalu (Tab) untuk menambah deskripsi"
         },
       }),
     ],
@@ -168,18 +165,15 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       Content: aditor?.getText()
     }
     if (PreDocumetCheck) {
-      console.log(PreDocumetCheck)
-      const update = UpdatePreDocument(ReturnObject, User?.UserID,).then(r => {
-        console.log("anjing", r)
+      const update = UpdatePreDocument(ReturnObject, User?.UserID, PreDocumetCheck.DocID).then(r => {
         if (!r) return
         handleSavingStatus("Saved")
+        setPreDocumetCheck(r)
       })
       return
     }
     const manag = Managers.find((man) => man.email === User.manager)
     const res = BikinDocument(ReturnObject, User, manag).then(r => {
-      console.log(r, "Anjing")
-      if (!r) return
       handleSavingStatus("Saved")
     })
     return ReturnObject
@@ -276,26 +270,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
                 </Button>
               </div>
             </div>
-          </div>
-          <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
-            <h1>Overview Topik</h1>
-            <div className="w-fit">
-              <Select disabled>
-                <SelectTrigger className="gap-5">
-                  <SelectValue placeholder="Regular 1on1" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectContent>ahay</SelectContent>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <ul className="list-inside ">
-              {Subtopics.map((SubTopic, index) => {
-                return <li key={index} className="list-disc">{SubTopic.SubTopicTitle}</li>
-              })}
-            </ul>
           </div>
         </div>
       </div>

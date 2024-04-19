@@ -14,8 +14,16 @@ export type InteraksiContents = {
   Summary?: string
 }
 
+export type MinteraksiContents = {
+  memberHTML?: string,
+  memberContent?: string,
+  managerHTML?: string,
+  managerContent?: string,
+  Summary?: string,
+  Catatan?: string,
+}
+
 export async function BikinDocument(Document: EditorTextandHTML, Uzer: User | undefined, manager: User | undefined) {
-  console.log("\n\n", Document, Uzer, manager)
   const DocumentMade = await prisma.document.create({
     data: {
       memberID: Uzer?.UserID,
@@ -25,12 +33,12 @@ export async function BikinDocument(Document: EditorTextandHTML, Uzer: User | un
       created_at: new Date().toISOString(),
     }
   })
-  return DocumentMade
 }
 
-export async function UpdatePreDocument(Document: EditorTextandHTML, UserID: number | undefined) {
+export async function UpdatePreDocument(Document: EditorTextandHTML, UserID: number | undefined, DocID: number) {
   const DocumentUpdated = await prisma.document.update({
     where: {
+      DocID: DocID,
       memberID: UserID,
     },
     data: {
@@ -40,9 +48,10 @@ export async function UpdatePreDocument(Document: EditorTextandHTML, UserID: num
   })
   return DocumentUpdated
 }
-export async function UpdateInterDocument(Document: InteraksiContents, manager: User, mentee: User) {
+export async function UpdateInterDocument(Document: InteraksiContents, manager: User, mentee: User, DocID?: number) {
   const DocumentInterUpdated = await prisma.document.update({
     where: {
+      DocID: DocID,
       memberID: mentee.UserID,
       managerID: manager.UserID,
     },
@@ -55,9 +64,23 @@ export async function UpdateInterDocument(Document: InteraksiContents, manager: 
     }
   })
 }
-
+export async function BikinInterDocument(Document: MinteraksiContents, manager: User, mentee: User) {
+  const DocumentInterUpdated = await prisma.document.create({
+    data: {
+      memberID: mentee.UserID,
+      managerID: manager.UserID,
+      memberHTML: Document.memberHTML,
+      memberContent: Document.memberContent,
+      managerHTML: Document.managerHTML,
+      managerContent: Document.managerContent,
+      Summary: Document.Summary,
+      created_at: new Date().toISOString(),
+      Catatan: Document.Catatan,
+    }
+  })
+}
 export async function AmbilPreDocument(UserID: number, manID: number) {
-  const Document = await prisma.document.findUnique({
+  const Document = await prisma.document.findFirst({
     where: {
       memberID: UserID,
       managerID: manID

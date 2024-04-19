@@ -2,26 +2,45 @@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { History, Loader2, TableProperties } from 'lucide-react';
+import { CalendarClock, History, Loader2, Sparkles, TableProperties } from 'lucide-react';
 import { Subtopics } from '../../Server/Topics';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Document, User } from '@prisma/client';
+import { getDocs } from '@/app/ListMentee/Server/GetMentees';
 
 export type SideBarRevProps = {
   aiResp: string | undefined
   SummaryCall: boolean
+  User: User | undefined | null
+  ChangeDocID?: (DocID: number) => void
 }
 
-export default function Sidebar({ aiResp, SummaryCall }: SideBarRevProps) {
+export default function Sidebar({ aiResp, SummaryCall, User, ChangeDocID }: SideBarRevProps) {
   const [PickedTopics, setPickedTopics] = useState<Array<string>>([])
-
   const [isExpanded, setIsExpanded] = useState(false);
-  const maxSummaryLength = 100; // Adjust this value to control the initial summary length
+  const [Mentee, setMentee] = useState<User | null>()
+  const [HistoricalDocs, setHistoricalDocs] = useState<Document[] | null | undefined>()
+  const [ChangedTabs, setChangedTabs] = useState(true)
 
-  const displayedSummary = aiResp ? (
-    isExpanded ? aiResp : aiResp.substring(0, maxSummaryLength) + '...'
-  ) : (
-    "Summary akan muncul setalah Interaksi selesai"
+  useEffect(() => {
+    const MenteeData = sessionStorage.getItem('MenteeData')
+    const MenteeDat = MenteeData ? JSON.parse(MenteeData) : null
+    setMentee(MenteeDat)
+    // @ts-ignore
+  }, [])
+  useEffect(() => {
+
+    if (!Mentee) return
+    if (!User) return
+    const docs = getDocs(Mentee?.UserID, User?.UserID).then(docs => {
+      const hisdocs = docs.filter((doc) => doc.memberID === Mentee.UserID && doc.managerID === User.UserID)
+      setHistoricalDocs(hisdocs)
+    })
+  }, [Mentee, User, SummaryCall])
+
+  const displayedSummary = aiResp ? (isExpanded ? aiResp : aiResp.substring(0, 100) + '...') : (
+    "AI Summarizer"
   );
 
   const handleReadMore = () => setIsExpanded(!isExpanded);
@@ -29,6 +48,7 @@ export default function Sidebar({ aiResp, SummaryCall }: SideBarRevProps) {
     if (!aiResp) return
     return <span className="text-xs px-4 text-purple-400 hover:cursor-pointer" onClick={handleReadMore}>{!isExpanded ? "Selengkapnya" : "Read less"}</span>
   }
+
   const renderedGuides = PickedTopics.map((topic, index) => {
     const findSubtopics = Subtopics.find((subtopic) => subtopic.SubTopicTitle === topic)
     const guides = findSubtopics?.Guides
@@ -44,12 +64,31 @@ export default function Sidebar({ aiResp, SummaryCall }: SideBarRevProps) {
     )
   })
 
+  const renderHistory = useMemo(() => {
+    const bruh = HistoricalDocs?.map((doc, index) => {
+      return <div key={index} onClick={() => ChangeDocID ? ChangeDocID(doc.DocID) : console.log("hi")} className="flex w-full flex-col gap-3 p-4 bg-white border-2 border-black rounded hover:border-purple-500 hover:cursor-pointer">
+        <div className="flex gap-2 text-xs items-center">
+          <CalendarClock className="w-4 h-4" />
+          <p>{doc.created_at.toLocaleDateString()}</p>
+        </div>
+        <p>{doc.Summary?.substring(0, 100) + "..."}</p>
+        <div className="flex text-sm gap-2 items-center">
+          <p className="px-3 py-[1.5px] rounded-xl border-2 border-gray-500">4</p>
+          <p>Total Komitmen</p>
+        </div>
+      </div>
+    })
+    return bruh
+  }, [HistoricalDocs, aiResp])
   return (
     <Tabs className="flex w-full justify-start bg-gray-100 h-[85vh] overflow-y-auto" defaultValue="main">
       <TabsContent value="main" className="w-full h-fit ">
         <div className="flex w-full flex-col px-5 py-4 gap-5 ">
           <div className="sommary flex flex-col gap-3">
-            <h1 className="text-lg ">Summary </h1>
+            <div className="flex gap-2 items-center">
+              <h1 className="text-lg ">Summary</h1>
+              <Button variant="outline" className="w-fit py-0"><Sparkles /></Button>
+            </div>
             <div>
               <p>{displayedSummary}
                 {renderSeeMore()}
@@ -67,6 +106,12 @@ export default function Sidebar({ aiResp, SummaryCall }: SideBarRevProps) {
             </ToggleGroup>
           </div>
           {renderedGuides}
+        </div>
+      </TabsContent>
+      <TabsContent value="History" className="w-full h-fit">
+        <div className="flex w-full gap-4 flex-col items-center p-5">
+          <h1 className=" text-xl  self-start">LOG 1on1</h1>
+          {renderHistory}
         </div>
       </TabsContent>
       <TabsList className="flex h-full flex-col p-3 justify-start bg-gray-200 gap-2">
