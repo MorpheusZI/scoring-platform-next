@@ -6,7 +6,6 @@ import { getDocs, getMentees } from "./Server/GetMentees"
 import { Prisma, User } from "@prisma/client"
 import { Loader2, UsersRound } from "lucide-react"
 import Link from "next/link"
-import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 export default function ListMentee() {
   const [UserData, setUserData] = useState<User | null>(null)
