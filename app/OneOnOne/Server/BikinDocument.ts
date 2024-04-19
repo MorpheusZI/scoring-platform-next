@@ -24,6 +24,7 @@ export type MinteraksiContents = {
 }
 
 export async function BikinDocument(Document: EditorTextandHTML, Uzer: User | undefined, manager: User | undefined) {
+  console.log(manager?.UserID, "ini manager si ", Uzer?.UserID)
   const DocumentMade = await prisma.document.create({
     data: {
       memberID: Uzer?.UserID,

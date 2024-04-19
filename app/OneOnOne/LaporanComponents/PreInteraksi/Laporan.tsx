@@ -68,7 +68,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     AmbilPreDocument(User.UserID, manag?.UserID).then(r => {
       setPreDocumetCheck(r)
     })
-  }, [User, FuncCaller, Managers])
+  }, [User, Managers])
 
   useEffect(() => {
     getHTMLandContent()
@@ -104,7 +104,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     addKeyboardShortcuts() {
       return {
         'Mod-k': () => this.editor.commands.toggleTaskList(),
-        'Tab': () => this.editor.commands.toggleTaskList()
+        'Tab': () => this.editor.commands.toggleTaskList(),
       }
     },
   })
@@ -144,7 +144,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
           if (editor?.can().splitListItem('taskList')) {
             return "CTRL + K Lagi untuk mendeskripsikan"
           }
-          return "(Ctrl + K) untuk menambah komitmen, (Enter) lalu (Tab) untuk menambah deskripsi"
+          return "(Ctrl + K) untuk komitmen baru, (Enter) lalu (Backspace) untuk deskripsi komitmen"
         },
       }),
     ],

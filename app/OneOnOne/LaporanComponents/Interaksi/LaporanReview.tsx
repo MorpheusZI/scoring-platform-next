@@ -50,6 +50,7 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar, Curre
     if (!Mentee) return
     if (!User) return
     AmbilPreDocument(Mentee.UserID, User.UserID).then(Doc => {
+      console.log(Doc?.memberHTML)
       if (!Doc) return
       PreInteraksiEditor?.commands.setContent(Doc?.memberHTML)
     })
