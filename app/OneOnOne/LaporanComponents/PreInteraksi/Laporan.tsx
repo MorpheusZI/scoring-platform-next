@@ -67,8 +67,13 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     const manag = Managers.find((man) => man.email === User.manager)
     if (!manag) return
     getDocs(User.UserID, manag.UserID).then((docs) => {
-      const doc = docs[0]
-      aditor?.commands.setContent(doc.memberHTML)
+      const doc = docs.sort((a, b) => {
+        return b.DocID - a.DocID
+      })
+      const dac = doc[0]
+      if (!doc) return
+      console.log(doc)
+      aditor?.commands.setContent(dac.memberHTML)
     })
   }, [User, Managers])
 

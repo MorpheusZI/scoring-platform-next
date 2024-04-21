@@ -53,8 +53,9 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
     if (!Mentee) return
     if (!User) return
     getDocs(Mentee.UserID, User.UserID).then((docs) => {
-      const doc = docs[0]
-      console.log(doc)
+      const doc = docs.find(doc => doc.managerContent === null)
+      if (!doc) return
+      console.log(docs)
       PreInteraksiEditor?.commands.setContent(doc.memberHTML)
     })
     // @ts-ignore
