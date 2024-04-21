@@ -30,7 +30,6 @@ export default function Home() {
     const Userdata = localStorage.getItem('UserStore')
     const UserJSON: User = Userdata ? JSON.parse(Userdata) : null
     const User = getUser(UserJSON.UserID).then(Uzer => {
-      console.log(Uzer, "ini dari useEffect")
       setUserData(Uzer)
     })
     if (!Userdata) {

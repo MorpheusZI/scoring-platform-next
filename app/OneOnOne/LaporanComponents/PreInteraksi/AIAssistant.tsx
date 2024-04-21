@@ -43,7 +43,7 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
           setAIRes(res)
           setAIResState("fullfilled")
         })
-      }, 5000);
+      }, 2000);
     }
   }, [AIRes])
 

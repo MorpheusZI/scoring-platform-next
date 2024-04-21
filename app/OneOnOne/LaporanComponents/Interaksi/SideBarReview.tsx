@@ -11,12 +11,14 @@ import { getDocs } from '@/app/ListMentee/Server/GetMentees';
 
 export type SideBarRevProps = {
   aiResp: string | undefined
-  SummaryCall: boolean
+  SummaryCall?: () => void;
+  UpdateDocHistory: boolean
   User: User | undefined | null
   ChangeDocID?: (DocID: number) => void
+  CurrentDocID?: number
 }
 
-export default function Sidebar({ aiResp, SummaryCall, User, ChangeDocID }: SideBarRevProps) {
+export default function Sidebar({ CurrentDocID, aiResp, SummaryCall, User, UpdateDocHistory, ChangeDocID }: SideBarRevProps) {
   const [PickedTopics, setPickedTopics] = useState<Array<string>>([])
   const [isExpanded, setIsExpanded] = useState(false);
   const [Mentee, setMentee] = useState<User | null>()
@@ -63,23 +65,29 @@ export default function Sidebar({ aiResp, SummaryCall, User, ChangeDocID }: Side
     )
   })
 
+  function CountKomitmen(Komitmen: string | null) {
+    const regex = new RegExp("<ul[^>]*>", "g")
+    const matches = Komitmen?.match(regex)
+    return matches ? matches?.length : "Gak Ketemu jir"
+  }
   const renderHistory = useMemo(() => {
     const bruh = HistoricalDocs?.map((doc, index) => {
       if (!doc.Summary && !doc.managerContent && !doc.Catatan) return
-      return <div key={index} onClick={() => ChangeDocID ? ChangeDocID(doc.DocID) : console.log("hi")} className="flex w-full flex-col gap-3 p-4 bg-white border-2 border-black rounded hover:border-purple-500 hover:cursor-pointer">
-        <div className="flex gap-2 text-xs items-center">
-          <CalendarClock className="w-4 h-4" />
-          <p>{doc.created_at.toLocaleDateString()}</p>
+      const CurrentDocClass = CurrentDocID === doc.DocID ? "border-2 border-purple-500 shadow-lg shadow-purple-300" : ""
+      return <div key={index} onClick={() => ChangeDocID ? ChangeDocID(doc.DocID) : console.log("hi")} className={`flex w-full flex-col gap-3 p-4 bg-white border-2 border-black rounded ${CurrentDocClass} hover:border-purple-500 hover:cursor-pointer`}>
+        <div className="flex gap-2 text-sm items-center">
+          <CalendarClock className="w-6 h-6" />
+          <p>{doc.created_at.toLocaleDateString()} <span className="ml-2">{doc.created_at.toLocaleTimeString()}</span></p>
         </div>
         <p>{doc.Summary?.substring(0, 100) + "..."}</p>
         <div className="flex text-sm gap-2 items-center">
-          <p className="px-3 py-[1.5px] rounded-xl border-2 border-gray-500">4</p>
+          <p className="px-3 py-[1.5px] rounded-xl border-2 border-gray-500">{CountKomitmen(doc.memberHTML)}</p>
           <p>Total Komitmen</p>
         </div>
       </div>
     })
     return bruh
-  }, [HistoricalDocs, aiResp])
+  }, [HistoricalDocs, aiResp, UpdateDocHistory, CurrentDocID])
   return (
     <Tabs className="flex w-full justify-start bg-gray-100 h-[85vh] overflow-y-auto" defaultValue="main">
       <TabsContent value="main" className="w-full h-fit ">
@@ -87,7 +95,7 @@ export default function Sidebar({ aiResp, SummaryCall, User, ChangeDocID }: Side
           <div className="sommary flex flex-col gap-3">
             <div className="flex gap-2 items-center">
               <h1 className="text-lg ">Summary</h1>
-              <Button variant="outline" className="w-fit py-0"><Sparkles /></Button>
+              <Button onClick={SummaryCall} variant="outline" className="w-fit py-0"><Sparkles /></Button>
             </div>
             <div>
               <p>{displayedSummary}

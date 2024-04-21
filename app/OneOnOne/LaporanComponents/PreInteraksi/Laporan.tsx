@@ -14,7 +14,7 @@ import ToolBar from "../../../Rcomponents/Toolbar";
 import { getManagers, updateUserManager } from '../../Server/ambilData';
 
 // lucide/shadcn imports
-import { Sparkles } from "lucide-react";
+import { CircleAlert, Sparkles } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { DropdownMenuGroup, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { AmbilPreDocument, BikinDocument, UpdatePreDocument, getUser } from '../
 import { Subtopics } from '../../Server/Topics';
 import { redirect } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
+import { getDocs } from '@/app/ListMentee/Server/GetMentees';
 
 type LaporanProps = {
   handleKomitmenDatatoAI?: (KomDataArr: KomitmenData[] | undefined) => void
@@ -45,7 +46,6 @@ export type EditorTextandHTML = {
 
 export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, handleSavingStatus, UserUpdater }: LaporanProps) {
   const [Managers, setManager] = useState<User[]>([])
-  const [defaultManager, setDefaultManager] = useState<User | undefined>()
 
   const [DisabledAI, setDisabledAI] = useState(false)
   const [prevEditorContentCheck, setprevEditorContentCheck] = useState<string | undefined>("")
@@ -66,18 +66,15 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     if (!Managers) return
     const manag = Managers.find((man) => man.email === User.manager)
     if (!manag) return
-    AmbilPreDocument(User.UserID, manag?.UserID).then(r => {
-      setPreDocumetCheck(r)
+    getDocs(User.UserID, manag.UserID).then((docs) => {
+      const doc = docs[0]
+      aditor?.commands.setContent(doc.memberHTML)
     })
   }, [User, Managers])
 
   useEffect(() => {
     getHTMLandContent()
   }, [FuncCaller])
-  useEffect(() => {
-    if (!PreDocumetCheck) return
-    aditor?.commands.setContent(PreDocumetCheck?.memberHTML)
-  }, [PreDocumetCheck])
 
   function handleSelectManagerChange(val: string) {
     if (!UserUpdater) return
@@ -95,14 +92,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       }
     }
   }
-
-  const getDefaultManagerValue = useMemo(() => {
-    if (!Managers && !User) return
-    const manag = Managers.find((m) => m.email === User?.manager)
-    setDefaultManager(manag)
-    return manag
-  }, [Managers, User])
-
   const customTaskList = TaskList.extend({
     addKeyboardShortcuts() {
       return {
@@ -168,14 +157,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       HTML: aditor?.getHTML(),
       Content: aditor?.getText()
     }
-    if (PreDocumetCheck) {
-      const update = UpdatePreDocument(ReturnObject, User?.UserID, PreDocumetCheck.DocID).then(r => {
-        if (!r) return
-        handleSavingStatus("Saved")
-        setPreDocumetCheck(r)
-      })
-      return
-    }
     const manag = Managers.find((man) => man.email === User.manager)
     const res = BikinDocument(ReturnObject, User, manag).then(r => {
       handleSavingStatus("Saved")
@@ -204,11 +185,13 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
   const handleAIassist = () => {
     if (!handleKomitmenDatatoAI) return
-    if (dataList && dataList?.filter((m) => m.Isi === undefined).length > 0) {
+    if (dataList?.length === 0) return
+    if (dataList && dataList?.filter((m) => m.Isi === undefined || m.Isi === "" || m.Isi === null).length > 0) {
       toast({
         title: "Belum lengkap!",
         description: "Ada beberapa komitmen yang belum di deskripsikan",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 1000,
       })
       return
     }
@@ -218,6 +201,38 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
   }
   const filteredManagers = Managers.filter((m) => m.email !== User?.email)
+  const renderManagerSelect = useMemo(() => {
+    if (User?.manager) {
+      return <Select value={User?.manager} onValueChange={value => handleSelectManagerChange(value)}>
+        <SelectTrigger className="gap-5">
+          <SelectValue placeholder="Pilih manager" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {filteredManagers.map((manager, index) => {
+              return <SelectItem value={manager.email} key={index}>{manager.username}</SelectItem>
+            })}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    } else {
+      return <div className="flex gap-4 items-center">
+        <Select onValueChange={value => handleSelectManagerChange(value)}>
+          <SelectTrigger className="gap-5">
+            <SelectValue placeholder="Pilih manager" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {filteredManagers.map((manager, index) => {
+                return <SelectItem value={manager.email} key={index}>{manager.username}</SelectItem>
+              })}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <CircleAlert className="w-7 h-7 text-red-500" />
+      </div>
+    }
+  }, [User])
 
   return (
     <div id="LaporanWrap" className="h-fit relative">
@@ -228,33 +243,11 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
         <div className="flex flex-col gap-6 px-7 py-6">
           <h1 className="text-2xl">Laporan</h1>
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
-            <h1>Pilih manager untuk laporan ini</h1>
+            <div className="flex gap-2">
+              <h1>Pilih manager untuk laporan ini</h1>
+            </div>
             <div className="w-fit">
-              {defaultManager ?
-                <Select defaultValue={defaultManager.email} onValueChange={value => handleSelectManagerChange(value)}>
-                  <SelectTrigger className="gap-5">
-                    <SelectValue placeholder="Pilih manager" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {filteredManagers.map((manager, index) => {
-                        return <SelectItem value={manager.email} key={index}>{manager.username}</SelectItem>
-                      })}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select> : <Select onValueChange={value => handleSelectManagerChange(value)}>
-                  <SelectTrigger className="gap-5">
-                    <SelectValue placeholder="Pilih manager" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {filteredManagers.map((manager, index) => {
-                        return <SelectItem value={manager.email} key={index}>{manager.username}</SelectItem>
-                      })}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              }
+              {renderManagerSelect}
             </div>
           </div>
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">

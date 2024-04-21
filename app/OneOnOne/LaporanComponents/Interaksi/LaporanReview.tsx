@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from "@/components/ui/button";
 import { Document, User } from '@prisma/client';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { AmbilPreDocument, BikinDocument, BikinInterDocument, InteraksiContents, MinteraksiContents, UpdateInterDocument } from '../../Server/BikinDocument';
+import { AmbilPreDocument, BikinDocument, BikinInterDocument, InteraksiContents, UpdateInterDocument } from '../../Server/BikinDocument';
 import { SummaryReq, getManagers, vertexAISummarizer } from '../../Server/ambilData';
 import { ExcelData, WriteToExcel } from '../../Server/Gsheet';
 import { getDocByDocID, getDocs } from '@/app/ListMentee/Server/GetMentees';
@@ -24,11 +24,14 @@ import { preinit } from 'react-dom';
 type LaporanProps = {
   User: User | null;
   CallSummary: boolean;
-  SummaryFuncToSideBar: (aiResp: string | undefined) => void;
+  CallSave: boolean;
+  // SummaryFuncToSideBar: (aiResp: string | undefined) => void;
+  SummaryFunc: (SummaryRez: SummaryReq) => void
+  SaveFunc: (Interaksi: InteraksiContents, SummaryReq: SummaryReq) => void
   CurrentDocID: number | undefined;
 }
 
-export default function Laporan({ User, CallSummary, SummaryFuncToSideBar, CurrentDocID }: LaporanProps) {
+export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, SaveFunc, CurrentDocID }: LaporanProps) {
   const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
   const [Mentee, setMentee] = useState<User | null>()
   useEffect(() => {
@@ -49,10 +52,10 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar, Curre
   useEffect(() => {
     if (!Mentee) return
     if (!User) return
-    AmbilPreDocument(Mentee.UserID, User.UserID).then(Doc => {
-      console.log(Doc?.memberHTML)
-      if (!Doc) return
-      PreInteraksiEditor?.commands.setContent(Doc?.memberHTML)
+    getDocs(Mentee.UserID, User.UserID).then((docs) => {
+      const doc = docs[0]
+      console.log(doc)
+      PreInteraksiEditor?.commands.setContent(doc.memberHTML)
     })
     // @ts-ignore
   }, [Mentee, User])
@@ -114,12 +117,10 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar, Curre
   const KomitmenAtasanEditor = useEditor(editorOptions())
   const Catatan = useEditor(editorOptions("catatan"))
 
-  const memoSaveExcel = (ExcDat: ExcelData) => {
-    WriteToExcel(ExcDat).then(r => console.log("yup"))
-  }
-
-  function handleSave() {
+  const setSummaryReq = useMemo(() => {
+    console.log("Hello hainjin")
     if (!User) return
+    if (!KomitmenAtasanEditor?.getText()) return
     if (!Mentee) return
     const DataSummary: SummaryReq = {
       KomitmenAtasan: KomitmenAtasanEditor?.getText(),
@@ -128,45 +129,83 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar, Curre
       NamaManager: User.username,
       NamaMentee: Mentee.username
     }
-    const ExcelData: ExcelData = {
-      member: Mentee.username,
-      manager: User.username,
-      created_at: new Date(),
-      komitmen_member: PreInteraksiEditor?.getText(),
-      komitmen_atasan: KomitmenAtasanEditor?.getText()
-    }
-
-    const aiSummary = vertexAISummarizer(DataSummary).then((res) => {
-      SummaryFuncToSideBar(res)
-      const InterData: InteraksiContents = {
-        Komitmen_Manager_Content: KomitmenAtasanEditor?.getText(),
-        Komitmen_Manager_HTML: KomitmenAtasanEditor?.getHTML(),
-        Catatan: Catatan?.getHTML(),
-        Summary: res
-      }
-      const MinterData: MinteraksiContents = {
-        memberContent: PreInteraksiEditor?.getText(),
-        memberHTML: PreInteraksiEditor?.getHTML(),
-        managerHTML: KomitmenAtasanEditor?.getHTML(),
-        managerContent: KomitmenAtasanEditor?.getText(),
-        Summary: res,
-        Catatan: Catatan?.getHTML()
-      }
-      memoSaveExcel({ ...ExcelData, summary: res })
-      getDocs(Mentee.UserID, User.UserID).then(Docs => Docs.find((doc) => doc.memberID === Mentee.UserID && doc.managerID === User.UserID)).then(doc => {
-        if (doc?.managerContent) {
-          BikinInterDocument(MinterData, User, Mentee)
-        } else {
-          UpdateInterDocument(InterData, User, Mentee, doc?.DocID)
-        }
-      })
-    })
-  }
-
-  useEffect(() => {
-    handleSave()
+    SummaryFunc(DataSummary)
   }, [CallSummary])
 
+  const setSaveReq = useMemo(() => {
+    if (!User) return
+    if (!Mentee) return
+    if (!KomitmenAtasanEditor?.getText()) return
+    const DataSummary: SummaryReq = {
+      KomitmenAtasan: KomitmenAtasanEditor?.getText(),
+      KomitmenBawahan: PreInteraksiEditor?.getText(),
+      Catatan: Catatan?.getText(),
+      NamaManager: User.username,
+      NamaMentee: Mentee.username
+    }
+    const SaveData: InteraksiContents = {
+      Komitmen_Member_HTML: PreInteraksiEditor?.getHTML(),
+      Komitmen_Member_Content: PreInteraksiEditor?.getText(),
+      Komitmen_Manager_HTML: KomitmenAtasanEditor?.getHTML(),
+      Komitmen_Manager_Content: KomitmenAtasanEditor?.getText(),
+      Catatan: Catatan?.getHTML()
+    }
+    SaveFunc(SaveData, DataSummary)
+  }, [CallSave])
+  //
+  // const memoSaveExcel = (ExcDat: ExcelData) => {
+  //   WriteToExcel(ExcDat).then(r => console.log("yup"))
+  // }
+  //
+  // function handleSave() {
+  //   if (!User) return
+  //   if (!Mentee) return
+  //   const DataSummary: SummaryReq = {
+  //     KomitmenAtasan: KomitmenAtasanEditor?.getText(),
+  //     KomitmenBawahan: PreInteraksiEditor?.getText(),
+  //     Catatan: Catatan?.getText(),
+  //     NamaManager: User.username,
+  //     NamaMentee: Mentee.username
+  //   }
+  //   const ExcelData: ExcelData = {
+  //     member: Mentee.username,
+  //     manager: User.username,
+  //     created_at: new Date(),
+  //     komitmen_member: PreInteraksiEditor?.getText(),
+  //     komitmen_atasan: KomitmenAtasanEditor?.getText()
+  //   }
+  //
+  //   const aiSummary = vertexAISummarizer(DataSummary).then((res) => {
+  //     SummaryFuncToSideBar(res)
+  //     const InterData: InteraksiContents = {
+  //       Komitmen_Manager_Content: KomitmenAtasanEditor?.getText(),
+  //       Komitmen_Manager_HTML: KomitmenAtasanEditor?.getHTML(),
+  //       Catatan: Catatan?.getHTML(),
+  //       Summary: res
+  //     }
+  //     const MinterData: MinteraksiContents = {
+  //       memberContent: PreInteraksiEditor?.getText(),
+  //       memberHTML: PreInteraksiEditor?.getHTML(),
+  //       managerHTML: KomitmenAtasanEditor?.getHTML(),
+  //       managerContent: KomitmenAtasanEditor?.getText(),
+  //       Summary: res,
+  //       Catatan: Catatan?.getHTML()
+  //     }
+  //     memoSaveExcel({ ...ExcelData, summary: res })
+  //     getDocs(Mentee.UserID, User.UserID).then(Docs => Docs.find((doc) => doc.memberID === Mentee.UserID && doc.managerID === User.UserID)).then(doc => {
+  //       if (doc?.managerContent) {
+  //         BikinInterDocument(MinterData, User, Mentee)
+  //       } else {
+  //         UpdateInterDocument(InterData, User, Mentee, doc?.DocID)
+  //       }
+  //     })
+  //   })
+  // }
+  //
+  // useEffect(() => {
+  //   handleSave()
+  // }, [CallSummary])
+  //
   return (
     <div id="LaporanWrap" className="h-fit relative">
       <div className="sticky top-0 z-10">
@@ -174,12 +213,12 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar, Curre
       </div>
       <div className="editor-container">
         <div className="flex flex-col gap-6 px-7 py-6">
-          <h1 className="text-2xl">Laporan </h1>
+          <h1 className="text-2xl">Laporan</h1>
           <div className="flex flex-col gap-5">
             <Accordion type="single" collapsible defaultValue="KomitmenBawahan">
               <AccordionItem value="KomitmenBawahan" className="px-7 border-b-transparent border-l-2 border-l-gray-200">
                 <AccordionTrigger>
-                  <h1 className="text-xl font-semibold">Komitmen Bawahan</h1>
+                  <h1 className="text-xl font-semibold">Komitmen Member</h1>
                 </AccordionTrigger>
                 <AccordionContent>
                   <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor)} editor={PreInteraksiEditor} />
