@@ -8,7 +8,7 @@ import { KomitmenData } from '../../LaporanComponents/PreInteraksi/Laporan'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import Link from 'next/link'
-export default function Home({ params }: { params: { RoomName: string } }) {
+export default function Home() {
   const [UserData, setUserData] = useState<User | null>()
   const [SummaryCall, setSummaryCall] = useState(false)
   const [SumarryText, setSummaryText] = useState<string | undefined>()

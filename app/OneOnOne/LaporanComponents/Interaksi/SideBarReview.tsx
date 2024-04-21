@@ -30,7 +30,6 @@ export default function Sidebar({ aiResp, SummaryCall, User, ChangeDocID }: Side
     // @ts-ignore
   }, [])
   useEffect(() => {
-
     if (!Mentee) return
     if (!User) return
     const docs = getDocs(Mentee?.UserID, User?.UserID).then(docs => {
@@ -66,6 +65,7 @@ export default function Sidebar({ aiResp, SummaryCall, User, ChangeDocID }: Side
 
   const renderHistory = useMemo(() => {
     const bruh = HistoricalDocs?.map((doc, index) => {
+      if (!doc.Summary && !doc.managerContent && !doc.Catatan) return
       return <div key={index} onClick={() => ChangeDocID ? ChangeDocID(doc.DocID) : console.log("hi")} className="flex w-full flex-col gap-3 p-4 bg-white border-2 border-black rounded hover:border-purple-500 hover:cursor-pointer">
         <div className="flex gap-2 text-xs items-center">
           <CalendarClock className="w-4 h-4" />

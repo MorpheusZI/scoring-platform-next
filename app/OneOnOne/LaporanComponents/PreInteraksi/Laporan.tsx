@@ -20,7 +20,7 @@ import { DropdownMenuGroup, DropdownMenu, DropdownMenuContent, DropdownMenuItem,
 import { Button } from "@/components/ui/button";
 import { Document, User } from '@prisma/client';
 import { Select, SelectValue, SelectContent, SelectGroup, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { AmbilPreDocument, BikinDocument, UpdatePreDocument } from '../../Server/BikinDocument';
+import { AmbilPreDocument, BikinDocument, UpdatePreDocument, getUser } from '../../Server/BikinDocument';
 import { Subtopics } from '../../Server/Topics';
 import { redirect } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
@@ -29,6 +29,7 @@ type LaporanProps = {
   handleKomitmenDatatoAI?: (KomDataArr: KomitmenData[] | undefined) => void
   User: User | null;
   FuncCaller?: boolean;
+  UserUpdater?: () => void;
   handleSavingStatus?: (Status: string) => void
 }
 
@@ -42,7 +43,7 @@ export type EditorTextandHTML = {
   HTML: string | undefined
 }
 
-export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, handleSavingStatus }: LaporanProps) {
+export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, handleSavingStatus, UserUpdater }: LaporanProps) {
   const [Managers, setManager] = useState<User[]>([])
   const [defaultManager, setDefaultManager] = useState<User | undefined>()
 
@@ -79,7 +80,9 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   }, [PreDocumetCheck])
 
   function handleSelectManagerChange(val: string) {
+    if (!UserUpdater) return
     if (User) {
+      UserUpdater()
       const managerusername = Managers.find((m) => m.email === val)
       const res = updateUserManager(User.email, val).then((res) =>
         toast({
@@ -160,6 +163,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     if (!User) return
     if (!handleSavingStatus) return
     handleSavingStatus("Saving")
+    const Uzer = getUser(User.UserID).then((Uxer) => Uxer)
     const ReturnObject: EditorTextandHTML = {
       HTML: aditor?.getHTML(),
       Content: aditor?.getText()

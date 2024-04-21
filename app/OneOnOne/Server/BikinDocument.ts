@@ -23,6 +23,15 @@ export type MinteraksiContents = {
   Catatan?: string,
 }
 
+export async function getUser(UserID: number) {
+  const User = await prisma.user.findUnique({
+    where: {
+      UserID: UserID
+    }
+  })
+  return User
+}
+
 export async function BikinDocument(Document: EditorTextandHTML, Uzer: User | undefined, manager: User | undefined) {
   console.log(manager?.UserID, "ini manager si ", Uzer?.UserID)
   const DocumentMade = await prisma.document.create({

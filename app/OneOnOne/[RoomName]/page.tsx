@@ -10,12 +10,14 @@ import { Button } from '@/components/ui/button'
 import { Check, CircleUser, Loader } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from '@/components/ui/use-toast'
+import { getUser } from '../Server/BikinDocument'
 export default function Home() {
   const [KomitmenDatArr, setKomitmenDataArr] = useState<KomitmenData[] | undefined>([])
   const [KomitmenChange, setKomitmenChange] = useState<boolean>(false)
 
   const [HTMLContentCall, setHTMLContentCall] = useState<boolean>(false)
   const [SaveStatus, setSaveStatus] = useState<string>("nill")
+  const [UserUpdate, setUserUpdate] = useState<boolean>(false)
 
   const [UserData, setUserData] = useState<User | null>()
 
@@ -26,16 +28,24 @@ export default function Home() {
 
   useEffect(() => {
     const Userdata = localStorage.getItem('UserStore')
-    const res = setUserData(Userdata ? JSON.parse(Userdata) : null)
+    const UserJSON: User = Userdata ? JSON.parse(Userdata) : null
+    const User = getUser(UserJSON.UserID).then(Uzer => {
+      console.log(Uzer, "ini dari useEffect")
+      setUserData(Uzer)
+    })
     if (!Userdata) {
       return redirect('/Login')
     }
-  }, [])
+  }, [UserUpdate])
 
   const handleKomitmenData = (KomDataArr: KomitmenData[] | undefined) => {
     setKomitmenDataArr(KomDataArr)
     setKomitmenChange(!KomitmenChange)
   };
+
+  const handleUserUpdate = () => {
+    setUserUpdate(!UserUpdate)
+  }
 
   const handleSaveKomitmenData = () => {
     setHTMLContentCall(!HTMLContentCall)
@@ -94,6 +104,7 @@ export default function Home() {
             FuncCaller={HTMLContentCall}
             User={UserData ? UserData : null}
             handleKomitmenDatatoAI={handleKomitmenData}
+            UserUpdater={handleUserUpdate}
           />
         </div>
         <div className="w-[30%] border-r-2 border-r-black">

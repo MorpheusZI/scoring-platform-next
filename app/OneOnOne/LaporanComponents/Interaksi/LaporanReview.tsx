@@ -159,7 +159,6 @@ export default function Laporan({ User, CallSummary, SummaryFuncToSideBar, Curre
         } else {
           UpdateInterDocument(InterData, User, Mentee, doc?.DocID)
         }
-        console.log("udah woi")
       })
     })
   }
