@@ -139,7 +139,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
           if (editor?.can().splitListItem('taskList')) {
             return "CTRL + K Lagi untuk mendeskripsikan"
           }
-          return "(Ctrl + K) untuk komitmen baru, (Enter) lalu (Backspace) untuk deskripsi komitmen"
+          return "(Ctrl + K) untuk komitmen baru, (Enter) lalu (Tab) untuk deskripsi komitmen"
         },
       }),
     ],
@@ -185,9 +185,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       Isi: isiList.filter((d) => posNext > 0 ? (d.pos > pos && d.pos < posNext) : (d.pos > pos)).map((d) => d.content).join(' '),
     };
   }), [$Judul, isiList])
-  const FilterOutCheckedKomitments = useMemo(() => {
-    console.log(aditor?.getJSON())
-  }, [aditor, User, Managers])
 
   const handleAIassist = () => {
     if (!handleKomitmenDatatoAI) return
