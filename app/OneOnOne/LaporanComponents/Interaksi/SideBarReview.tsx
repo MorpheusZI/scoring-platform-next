@@ -14,7 +14,7 @@ export type SideBarRevProps = {
   SummaryCall?: () => void;
   UpdateDocHistory: boolean
   User: User | undefined | null
-  ChangeDocID?: (DocID: number) => void
+  ChangeDocID?: (DocID: number | undefined) => void
   CurrentDocID?: number
 }
 
@@ -70,11 +70,19 @@ export default function Sidebar({ CurrentDocID, aiResp, SummaryCall, User, Updat
     const matches = Komitmen?.match(regex)
     return matches ? matches?.length : "Gak Ketemu jir"
   }
+  function handleDocIDchange(docId: number, CurrentDocID: number | undefined) {
+    if (!ChangeDocID) return
+    ChangeDocID(docId)
+    if (CurrentDocID === docId) {
+      ChangeDocID(undefined)
+      return
+    }
+  }
   const renderHistory = useMemo(() => {
     const bruh = HistoricalDocs?.map((doc, index) => {
       if (!doc.Summary && !doc.managerContent && !doc.Catatan) return
       const CurrentDocClass = CurrentDocID === doc.DocID ? "border-2 border-purple-500 shadow-lg shadow-purple-300" : ""
-      return <div key={index} onClick={() => ChangeDocID ? ChangeDocID(doc.DocID) : console.log("hi")} className={`flex w-full flex-col gap-3 p-4 bg-white border-2 border-black rounded ${CurrentDocClass} hover:border-purple-500 hover:cursor-pointer`}>
+      return <div key={index} onClick={() => handleDocIDchange(doc.DocID, CurrentDocID)} className={`flex w-full flex-col gap-3 p-4 bg-white border-2 border-black rounded ${CurrentDocClass} hover:border-purple-500 hover:cursor-pointer`}>
         <div className="flex gap-2 text-sm items-center">
           <CalendarClock className="w-6 h-6" />
           <p>{doc.created_at.toLocaleDateString()} <span className="ml-2">{doc.created_at.toLocaleTimeString()}</span></p>

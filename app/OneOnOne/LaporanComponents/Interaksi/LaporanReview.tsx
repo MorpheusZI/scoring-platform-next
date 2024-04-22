@@ -20,6 +20,7 @@ import { SummaryReq, getManagers, vertexAISummarizer } from '../../Server/ambilD
 import { ExcelData, WriteToExcel } from '../../Server/Gsheet';
 import { getDocByDocID, getDocs } from '@/app/ListMentee/Server/GetMentees';
 import { preinit } from 'react-dom';
+import { useToast } from '@/components/ui/use-toast';
 
 type LaporanProps = {
   User: User | null;
@@ -34,6 +35,7 @@ type LaporanProps = {
 export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, SaveFunc, CurrentDocID }: LaporanProps) {
   const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
   const [Mentee, setMentee] = useState<User | null>()
+  const { toast } = useToast()
   useEffect(() => {
     const MenteeData = sessionStorage.getItem('MenteeData')
     const MenteeDat = MenteeData ? JSON.parse(MenteeData) : null
@@ -41,7 +43,19 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
     // @ts-ignore
   }, [])
   useEffect(() => {
-    if (!CurrentDocID) return
+    if (!User) return
+    if (!Mentee) return
+    if (!CurrentDocID) {
+      getDocs(Mentee.UserID, User.UserID).then((docs) => {
+        const dac = docs.sort((a, b) => { return b.DocID - a.DocID })
+        const doc = dac.find(doc => doc.managerContent === null)
+        if (!doc) return
+        PreInteraksiEditor?.commands.setContent(doc.memberHTML)
+        KomitmenAtasanEditor?.commands.setContent("")
+        Catatan?.commands.setContent("")
+      })
+      return
+    }
     getDocByDocID(CurrentDocID).then((Doc) => {
       if (!Doc) return
       PreInteraksiEditor?.commands.setContent(Doc.memberHTML)
@@ -49,17 +63,6 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
       Catatan?.commands.setContent(Doc.Catatan)
     })
   }, [Mentee, User, CurrentDocID])
-  useEffect(() => {
-    if (!Mentee) return
-    if (!User) return
-    getDocs(Mentee.UserID, User.UserID).then((docs) => {
-      const doc = docs.find(doc => doc.managerContent === null)
-      if (!doc) return
-      console.log(docs)
-      PreInteraksiEditor?.commands.setContent(doc.memberHTML)
-    })
-    // @ts-ignore
-  }, [Mentee, User])
 
   const customTaskList = TaskList.extend({
     addKeyboardShortcuts() {
@@ -119,10 +122,18 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
   const Catatan = useEditor(editorOptions("catatan"))
 
   const setSummaryReq = useMemo(() => {
-    console.log("Hello hainjin")
     if (!User) return
-    if (!KomitmenAtasanEditor?.getText()) return
     if (!Mentee) return
+    if (!KomitmenAtasanEditor?.getText()) return
+    if (!KomitmenAtasanEditor?.getText() || KomitmenAtasanEditor.getText() === "") {
+      toast({
+        title: "Belum Lengkap!",
+        description: "Anda belum mengisi komitmen Atasan",
+        variant: "destructive",
+        duration: 1000,
+      })
+      return
+    }
     const DataSummary: SummaryReq = {
       KomitmenAtasan: KomitmenAtasanEditor?.getText(),
       KomitmenBawahan: PreInteraksiEditor?.getText(),
@@ -136,7 +147,15 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
   const setSaveReq = useMemo(() => {
     if (!User) return
     if (!Mentee) return
-    if (!KomitmenAtasanEditor?.getText()) return
+    if (!KomitmenAtasanEditor?.getText() || KomitmenAtasanEditor.getText() === "") {
+      toast({
+        title: "Belum Lengkap!",
+        description: "Anda belum mengisi komitmen Atasan",
+        variant: "destructive",
+        duration: 1000,
+      })
+      return
+    }
     const DataSummary: SummaryReq = {
       KomitmenAtasan: KomitmenAtasanEditor?.getText(),
       KomitmenBawahan: PreInteraksiEditor?.getText(),
@@ -153,60 +172,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
     }
     SaveFunc(SaveData, DataSummary)
   }, [CallSave])
-  //
-  // const memoSaveExcel = (ExcDat: ExcelData) => {
-  //   WriteToExcel(ExcDat).then(r => console.log("yup"))
-  // }
-  //
-  // function handleSave() {
-  //   if (!User) return
-  //   if (!Mentee) return
-  //   const DataSummary: SummaryReq = {
-  //     KomitmenAtasan: KomitmenAtasanEditor?.getText(),
-  //     KomitmenBawahan: PreInteraksiEditor?.getText(),
-  //     Catatan: Catatan?.getText(),
-  //     NamaManager: User.username,
-  //     NamaMentee: Mentee.username
-  //   }
-  //   const ExcelData: ExcelData = {
-  //     member: Mentee.username,
-  //     manager: User.username,
-  //     created_at: new Date(),
-  //     komitmen_member: PreInteraksiEditor?.getText(),
-  //     komitmen_atasan: KomitmenAtasanEditor?.getText()
-  //   }
-  //
-  //   const aiSummary = vertexAISummarizer(DataSummary).then((res) => {
-  //     SummaryFuncToSideBar(res)
-  //     const InterData: InteraksiContents = {
-  //       Komitmen_Manager_Content: KomitmenAtasanEditor?.getText(),
-  //       Komitmen_Manager_HTML: KomitmenAtasanEditor?.getHTML(),
-  //       Catatan: Catatan?.getHTML(),
-  //       Summary: res
-  //     }
-  //     const MinterData: MinteraksiContents = {
-  //       memberContent: PreInteraksiEditor?.getText(),
-  //       memberHTML: PreInteraksiEditor?.getHTML(),
-  //       managerHTML: KomitmenAtasanEditor?.getHTML(),
-  //       managerContent: KomitmenAtasanEditor?.getText(),
-  //       Summary: res,
-  //       Catatan: Catatan?.getHTML()
-  //     }
-  //     memoSaveExcel({ ...ExcelData, summary: res })
-  //     getDocs(Mentee.UserID, User.UserID).then(Docs => Docs.find((doc) => doc.memberID === Mentee.UserID && doc.managerID === User.UserID)).then(doc => {
-  //       if (doc?.managerContent) {
-  //         BikinInterDocument(MinterData, User, Mentee)
-  //       } else {
-  //         UpdateInterDocument(InterData, User, Mentee, doc?.DocID)
-  //       }
-  //     })
-  //   })
-  // }
-  //
-  // useEffect(() => {
-  //   handleSave()
-  // }, [CallSummary])
-  //
+
   return (
     <div id="LaporanWrap" className="h-fit relative">
       <div className="sticky top-0 z-10">

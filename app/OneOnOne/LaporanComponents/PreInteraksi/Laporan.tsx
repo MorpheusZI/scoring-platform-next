@@ -49,7 +49,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
   const [DisabledAI, setDisabledAI] = useState(false)
   const [prevEditorContentCheck, setprevEditorContentCheck] = useState<string | undefined>("")
-  const [PreDocumetCheck, setPreDocumetCheck] = useState<Document | undefined | null>()
 
   useEffect(() => {
     const Userdata = localStorage.getItem('UserStore')
@@ -72,7 +71,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       })
       const dac = doc[0]
       if (!doc) return
-      console.log(doc)
       aditor?.commands.setContent(dac.memberHTML)
     })
   }, [User, Managers])
@@ -187,6 +185,9 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       Isi: isiList.filter((d) => posNext > 0 ? (d.pos > pos && d.pos < posNext) : (d.pos > pos)).map((d) => d.content).join(' '),
     };
   }), [$Judul, isiList])
+  const FilterOutCheckedKomitments = useMemo(() => {
+    console.log(aditor?.getJSON())
+  }, [aditor, User, Managers])
 
   const handleAIassist = () => {
     if (!handleKomitmenDatatoAI) return

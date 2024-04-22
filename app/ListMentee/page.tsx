@@ -43,13 +43,14 @@ export default function ListMentee() {
   }, [UserData])
   useEffect(() => {
     if (!UserData) return
-    const mentee = MenteeLists?.find((men) => men.manager === UserData?.email)?.UserID
+    const mentee = MenteeLists?.filter((men) => men.manager === UserData?.email)
     if (!mentee) return
-    getDocs(mentee, UserData.UserID).then((doc) => {
-      console.log(doc.length)
-      if (doc.length !== 0) {
-        setAdaDokumen(false)
-      }
+    mentee.map((mentee) => {
+      getDocs(mentee.UserID, UserData?.UserID).then((docs) => {
+        if (docs.length > 0) {
+          setAdaDokumen(false)
+        }
+      })
     })
   }, [MenteeLists])
   return (

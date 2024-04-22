@@ -71,10 +71,10 @@ export default function Home() {
   }
 
   function handleSavenSummary(Interaksi: InteraksiContents, SummaryReq: SummaryReq) {
+    setSavingStatus("Saving")
     if (!Mentee) return
     if (!UserData) return
-
-    setSavingStatus("Saving")
+    if (!Interaksi.Komitmen_Manager_Content) return
     const ExcelDat: ExcelData = {
       member: Mentee.username,
       manager: UserData.username,
@@ -83,6 +83,7 @@ export default function Home() {
     }
 
     if (!SummaryText) {
+      setSavingStatus("Saving")
       const AIres = vertexAISummarizer(SummaryReq).then((Summary) => {
         setSummaryText(Summary)
         getDocs(Mentee?.UserID, UserData?.UserID).then((doc) => {
@@ -94,38 +95,34 @@ export default function Home() {
               WriteToExcel(newExcData).then(() => setSavingStatus("Saved"))
             })
           } else {
-            BikinInterDocument(newInteraksi, UserData, Mentee).then(() => toast({
-              title: "Document Tersimpan!",
-              description: `1 ON 1 Interaksi Telah Disimpan, ${new Date().toLocaleDateString()}`,
-              duration: 1000,
-            }))
+            BikinInterDocument(newInteraksi, UserData, Mentee).then(() => {
+              WriteToExcel(newExcData).then(() => setSavingStatus("Saved"))
+            }
+            )
           }
         })
       })
     } else {
+      setSavingStatus("Saving")
       const Doz = getDocs(Mentee?.UserID, UserData?.UserID).then((doc) => {
         const newInteraksi: InteraksiContents = { ...Interaksi, Summary: SummaryText }
         const newExcData: ExcelData = { ...ExcelDat, summary: SummaryText }
         if (!doc[doc.length - 1].managerContent || doc[doc.length - 1].managerContent === null) {
           const dac = doc[doc.length - 1]
-          UpdateInterDocument(newInteraksi, UserData, Mentee, dac.DocID).then(() => toast({
-            title: "Document Tersimpan!",
-            description: `1 ON 1 Interaksi Telah Disimpan, ${new Date().toLocaleDateString()}`,
-            duration: 1000,
-          }))
+          UpdateInterDocument(newInteraksi, UserData, Mentee, dac.DocID).then(() => {
+            WriteToExcel(newExcData).then(() => setSavingStatus("Saved"))
+          })
         } else {
-          BikinInterDocument(newInteraksi, UserData, Mentee).then(() => toast({
-            title: "Document Tersimpan!",
-            description: `1 ON 1 Interaksi Telah Disimpan, ${new Date().toLocaleDateString()}`,
-            duration: 1000,
-          }))
+          BikinInterDocument(newInteraksi, UserData, Mentee).then(() => {
+            WriteToExcel(newExcData).then(() => setSavingStatus("Saved"))
+          })
         }
       })
       console.log("eh udah ada summary cog astaga")
     }
   }
 
-  function handleChangeDoc(DocID: number) {
+  function handleChangeDoc(DocID: number | undefined) {
     setDocID(DocID)
   }
 
