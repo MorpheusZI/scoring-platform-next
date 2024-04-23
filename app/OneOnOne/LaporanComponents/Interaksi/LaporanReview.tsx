@@ -145,7 +145,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
     SummaryFunc(DataSummary)
   }, [CallSummary])
 
-  const setSaveReq = useMemo(() => {
+  useEffect(() => {
     if (!User) return
     if (!Mentee) return
     if (!KomitmenAtasanEditor?.getText() || KomitmenAtasanEditor.getText() === "") {

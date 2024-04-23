@@ -212,7 +212,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   }
 
 
-  const FilterOutCheckedKomitmens = useMemo(() => {
+  useEffect(() => {
     const json = aditor?.getHTML()
     if (!json) return
     const res = parseContent(json)
