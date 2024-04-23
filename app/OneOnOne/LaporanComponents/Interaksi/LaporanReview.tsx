@@ -45,14 +45,14 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
   useEffect(() => {
     if (!User) return
     if (!Mentee) return
-    if (!CurrentDocID) {
+    if (!CurrentDocID || CurrentDocID === null || CurrentDocID == undefined) {
+      KomitmenAtasanEditor?.commands.setContent("")
+      Catatan?.commands.setContent("")
       getDocs(Mentee.UserID, User.UserID).then((docs) => {
         const dac = docs.sort((a, b) => { return b.DocID - a.DocID })
         const doc = dac.find(doc => doc.managerContent === null)
         if (!doc) return
         PreInteraksiEditor?.commands.setContent(doc.memberHTML)
-        KomitmenAtasanEditor?.commands.setContent("")
-        Catatan?.commands.setContent("")
       })
       return
     }

@@ -37,13 +37,14 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
     })
     const theresAnEmptyObjectOmg = AIRes.filter((AI) => AI?.Situasi.Komentar === "" && AI.Tugas.Komentar === "" && AI.Aksi.Komentar === "" && AI.Hasil.Komentar === "")
     if (theresAnEmptyObjectOmg.length > 0) {
+      console.log("Ada empty object cuy", theresAnEmptyObjectOmg)
       setAIResState("err2")
       setTimeout(() => {
         testingdata(KomitmenDataArr).then(res => {
           setAIRes(res)
           setAIResState("fullfilled")
         })
-      }, 2000);
+      }, 3000);
     }
   }, [AIRes])
 
@@ -101,7 +102,7 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
       case "fullfilled":
         return AIRes.map((res, index: number) => {
           return <div key={index} className="flex flex-col p-5 gap-7 border-2 bg-white rounded-xl border-gray-300 text-black">
-            <h1 className="text-md font-semibold">{res?.Judul}</h1>
+            <h1 className="text-md text-center border-b-2 border-b-black pb-4 font-semibold">{res?.Judul}</h1>
             {res ?
               Object.entries(res).map(([k, v]) => {
                 const value = v as NestedObject

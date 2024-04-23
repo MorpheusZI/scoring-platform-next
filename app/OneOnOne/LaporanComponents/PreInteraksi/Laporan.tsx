@@ -49,6 +49,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
   const [DisabledAI, setDisabledAI] = useState(false)
   const [prevEditorContentCheck, setprevEditorContentCheck] = useState<string | undefined>("")
+  const [Loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     const Userdata = localStorage.getItem('UserStore')
@@ -70,9 +71,11 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
         return b.DocID - a.DocID
       })
       const dac = doc[0]
-      if (!doc) return
+      if (!dac) return
       aditor?.commands.setContent(dac.memberHTML)
+      setLoaded(!Loaded)
     })
+    setLoaded(!Loaded)
   }, [User, Managers])
 
   useEffect(() => {
@@ -100,6 +103,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       return {
         'Mod-k': () => this.editor.commands.toggleTaskList(),
         'Tab': () => this.editor.commands.toggleTaskList(),
+        'Shift-Enter': () => this.editor.commands.enter(),
       }
     },
   })
@@ -176,7 +180,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     }
   })
 
-
   const dataList: KomitmenData[] | undefined = useMemo(() => $Judul?.map(($el, i) => {
     const pos = $el.pos;
     const posNext = i < ($Judul.length - 1) ? $Judul[i + 1].pos : 0;
@@ -185,6 +188,40 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       Isi: isiList.filter((d) => posNext > 0 ? (d.pos > pos && d.pos < posNext) : (d.pos > pos)).map((d) => d.content).join(' '),
     };
   }), [$Judul, isiList])
+
+
+
+  function parseContent(content: string): string {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(content, 'text/html');
+    const taskListItems = doc.querySelectorAll('ul[data-type="taskList"]');
+
+    let filteredContent = '';
+    let skipContent = false;
+
+    taskListItems.forEach(item => {
+      const isChecked = item.querySelector('li[data-checked="true"]');
+      if (isChecked) {
+        skipContent = true;
+      } else {
+        skipContent = false;
+        filteredContent += item.outerHTML + item.nextElementSibling?.outerHTML;
+      }
+      if (!isChecked && skipContent && item.nextElementSibling?.tagName === 'ul') {
+        skipContent = false;
+        filteredContent += item.outerHTML + item.nextElementSibling?.outerHTML;
+      }
+    });
+    return filteredContent;
+  }
+
+
+  const FilterOutCheckedKomitmens = useMemo(() => {
+    const json = aditor?.getHTML()
+    if (!json) return
+    const res = parseContent(json)
+    aditor?.commands.setContent(res)
+  }, [Loaded])
 
   const handleAIassist = () => {
     if (!handleKomitmenDatatoAI) return
