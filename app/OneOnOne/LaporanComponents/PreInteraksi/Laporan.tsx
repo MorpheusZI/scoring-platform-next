@@ -77,6 +77,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       setLoaded(!Loaded)
     })
     setLoaded(!Loaded)
+    console.log("Its Loaded f usestate")
   }, [User, Managers])
 
   useEffect(() => {
@@ -217,7 +218,8 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     if (!json) return
     const res = parseContent(json)
     aditor?.commands.setContent(res)
-  }, [Loaded])
+    console.log("its loaded not usestate")
+  }, [Loaded, Managers, User])
 
   const handleAIassist = () => {
     if (!handleKomitmenDatatoAI) return
