@@ -71,12 +71,10 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
         return b.DocID - a.DocID
       })
       const dac = doc[0]
-      console.log(docs)
       if (!dac) return
       aditor?.commands.setContent(dac.memberHTML)
       setLoaded(!Loaded)
     })
-    console.log("Its Loaded f usestate")
   }, [User, Managers])
 
   useEffect(() => {
@@ -243,9 +241,18 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       if (isChecked) {
         skipContent = true
       } else {
-        filteredContent += item.outerHTML + item.nextElementSibling?.outerHTML
+        skipContent = false
+        filteredContent += item.outerHTML
+      }
+      let nextSibling = item.nextElementSibling;
+      while (nextSibling && !nextSibling.hasAttribute('data-type="taskList"')) {
+        if (!skipContent) {
+          filteredContent += nextSibling.outerHTML;
+        }
+        nextSibling = nextSibling.nextElementSibling;
       }
     });
+
     return filteredContent;
   }
 
