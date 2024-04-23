@@ -193,6 +193,18 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
 
 
+  useEffect(() => {
+    const json = aditor?.getHTML()
+    if (!json) return
+    const res = parseContent(json)
+    if (!res) {
+      console.log("gaada ajg", json)
+      return
+    }
+    aditor?.commands.setContent(res)
+    console.log("its loaded not usestate", res)
+  }, [Loaded, Managers, User])
+
   function parseContent(content: string): string {
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, 'text/html');
@@ -212,14 +224,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     return filteredContent;
   }
 
-
-  useEffect(() => {
-    const json = aditor?.getHTML()
-    if (!json) return
-    const res = parseContent(json)
-    aditor?.commands.setContent(res)
-    console.log("its loaded not usestate", res)
-  }, [Loaded, Managers, User])
 
   const handleAIassist = () => {
     if (!handleKomitmenDatatoAI) return
