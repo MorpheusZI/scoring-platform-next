@@ -20,7 +20,7 @@ export default function Home() {
   const [SummaryCall, setSummaryCall] = useState(false)
   const [SummaryText, setSummaryText] = useState<string | undefined>()
 
-  const [SaveCall, setSaveCall] = useState(false)
+  const [SaveCall, setSaveCall] = useState<boolean>(false)
   const [SavingStatus, setSavingStatus] = useState("nill")
   const { toast } = useToast()
 

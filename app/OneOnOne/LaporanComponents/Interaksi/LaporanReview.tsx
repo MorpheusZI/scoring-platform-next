@@ -146,6 +146,9 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
   }, [CallSummary])
 
   useEffect(() => {
+    saveInteraksiDoc()
+  }, [CallSave])
+  function saveInteraksiDoc() {
     if (!User) return
     if (!Mentee) return
     if (!KomitmenAtasanEditor?.getText() || KomitmenAtasanEditor.getText() === "") {
@@ -172,7 +175,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
       Catatan: Catatan?.getHTML()
     }
     SaveFunc(SaveData, DataSummary)
-  }, [CallSave])
+  }
 
   return (
     <div id="LaporanWrap" className="h-fit relative">
