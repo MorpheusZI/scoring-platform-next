@@ -173,7 +173,29 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   }
 
   const $Isi = aditor?.$nodes('paragraph')
+  const $OLItem = aditor?.$nodes('orderedList')
+  const $BulletListItem = aditor?.$nodes('bulletList')
+  const $blockquoteList = aditor?.$nodes('blockquote')
   const $Judul = aditor?.$nodes('taskList')
+  const $bqList = aditor?.$nodes('')
+  const bqList = ($blockquoteList || []).map(($el) => {
+    return {
+      content: $el.textContent,
+      pos: $el.pos,
+    }
+  })
+  const BLList = ($BulletListItem || []).map(($el) => {
+    return {
+      content: $el.textContent,
+      pos: $el.pos
+    }
+  })
+  const OLList = ($OLItem || []).map(($el) => {
+    return {
+      content: $el.textContent,
+      pos: $el.pos
+    }
+  })
   const isiList = ($Isi || []).map(($el) => {
     return {
       content: $el.textContent,
@@ -184,9 +206,15 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   const dataList: KomitmenData[] | undefined = useMemo(() => $Judul?.map(($el, i) => {
     const pos = $el.pos;
     const posNext = i < ($Judul.length - 1) ? $Judul[i + 1].pos : 0;
+    const isiArr = isiList.filter((d) => posNext > 0 ? (d.pos > pos && d.pos < posNext) : (d.pos > pos)).map((d) => d.content)
+    const Blist = BLList.filter((d) => posNext > 0 ? (d.pos > pos && d.pos < posNext) : (d.pos > pos)).map((d) => d.content)
+    const Olist = OLList.filter((d) => posNext > 0 ? (d.pos > pos && d.pos < posNext) : (d.pos > pos)).map((d) => d.content)
+
+    const BQList = bqList.filter((d) => posNext > 0 ? (d.pos > pos && d.pos < posNext) : (d.pos > pos)).map((d) => d.content)
+    const semuanya = [...Olist, ...Blist, ...isiArr, ...BQList].join(' ')
     return {
       Judul: $el.textContent,
-      Isi: isiList.filter((d) => posNext > 0 ? (d.pos > pos && d.pos < posNext) : (d.pos > pos)).map((d) => d.content).join(' '),
+      Isi: semuanya
     };
   }), [$Judul, isiList])
 
