@@ -46,6 +46,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
     if (!User) return
     if (!Mentee) return
     if (!CurrentDocID || CurrentDocID === null || CurrentDocID == undefined) {
+      console.log(CurrentDocID)
       KomitmenAtasanEditor?.commands.setContent("")
       Catatan?.commands.setContent("")
       getDocs(Mentee.UserID, User.UserID).then((docs) => {

@@ -77,7 +77,7 @@ export default function Home() {
           <div className="flex items-center gap-3 self-end">
             <div className="flex items-center text-xs gap-[2px]">
               <p >Belum punya akun? </p>
-              <Button asChild variant="link" className="px-1 text-xs">
+              <Button asChild variant="link" className="px-1 text-xs hover:text-purple-500">
                 <Link href="/Register">Register</Link>
               </Button>
             </div>

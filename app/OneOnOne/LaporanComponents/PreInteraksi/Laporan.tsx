@@ -71,6 +71,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
         return b.DocID - a.DocID
       })
       const dac = doc[0]
+      console.log(docs)
       if (!dac) return
       aditor?.commands.setContent(dac.memberHTML)
       setLoaded(!Loaded)
@@ -199,17 +200,12 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     let filteredContent = '';
     let skipContent = false;
 
-    taskListItems.forEach(item => {
+    taskListItems.forEach((item, index) => {
       const isChecked = item.querySelector('li[data-checked="true"]');
       if (isChecked) {
-        skipContent = true;
-      } else {
-        skipContent = false;
-        filteredContent += item.outerHTML + item.nextElementSibling?.outerHTML;
-      }
-      if (!isChecked && skipContent && item.nextElementSibling?.tagName === 'ul') {
-        skipContent = false;
-        filteredContent += item.outerHTML + item.nextElementSibling?.outerHTML;
+        skipContent = true
+      } else if (!isChecked) {
+        filteredContent += item.outerHTML + item.nextElementSibling?.outerHTML
       }
     });
     return filteredContent;
