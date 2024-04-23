@@ -58,6 +58,8 @@ export async function UpdateInterDocument(Document: InteraksiContents, manager: 
       managerID: manager.UserID,
     },
     data: {
+      memberHTML: Document.Komitmen_Member_HTML,
+      memberContent: Document.Komitmen_Member_Content,
       managerHTML: Document.Komitmen_Manager_HTML,
       managerContent: Document.Komitmen_Manager_Content,
       Summary: Document.Summary,

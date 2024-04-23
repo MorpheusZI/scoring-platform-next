@@ -197,11 +197,9 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     if (!json) return
     const res = parseContent(json)
     if (!res) {
-      console.log("gaada ajg", json)
       return
     }
     aditor?.commands.setContent(res)
-    console.log("its loaded not usestate", res)
   }, [Loaded, Managers, User])
 
   function parseContent(content: string): string {
