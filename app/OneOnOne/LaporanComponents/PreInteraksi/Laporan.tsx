@@ -205,7 +205,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       const isChecked = item.querySelector('li[data-checked="true"]');
       if (isChecked) {
         skipContent = true
-      } else if (!isChecked) {
+      } else {
         filteredContent += item.outerHTML + item.nextElementSibling?.outerHTML
       }
     });
@@ -218,7 +218,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     if (!json) return
     const res = parseContent(json)
     aditor?.commands.setContent(res)
-    console.log("its loaded not usestate")
+    console.log("its loaded not usestate", res)
   }, [Loaded, Managers, User])
 
   const handleAIassist = () => {
