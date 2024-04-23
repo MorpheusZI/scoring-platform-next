@@ -148,6 +148,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
   useEffect(() => {
     saveInteraksiDoc()
   }, [CallSave])
+
   function saveInteraksiDoc() {
     if (!User) return
     if (!Mentee) return
@@ -174,6 +175,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
       Komitmen_Manager_Content: KomitmenAtasanEditor?.getText(),
       Catatan: Catatan?.getHTML()
     }
+    console.log(PreInteraksiEditor?.getHTML(), "ini dari LaporanReview")
     SaveFunc(SaveData, DataSummary)
   }
 

@@ -87,6 +87,7 @@ export default function Home() {
         setSummaryText(Summary)
         getDocs(Mentee?.UserID, UserData?.UserID).then((doc) => {
           const newInteraksi: InteraksiContents = { ...Interaksi, Summary: Summary }
+          console.log("Ini dari page\n", newInteraksi)
           const newExcData: ExcelData = { ...ExcelDat, summary: Summary }
           if (!doc[doc.length - 1].managerContent || doc[doc.length - 1].managerContent === null) {
             const dac = doc[doc.length - 1]
