@@ -76,7 +76,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       aditor?.commands.setContent(dac.memberHTML)
       setLoaded(!Loaded)
     })
-    setLoaded(!Loaded)
     console.log("Its Loaded f usestate")
   }, [User, Managers])
 
