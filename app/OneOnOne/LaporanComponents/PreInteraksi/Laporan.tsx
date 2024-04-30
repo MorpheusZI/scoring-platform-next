@@ -200,7 +200,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
             aria-expanded={Open}
             className="gap-5"
           >
-            {User.manager}
+            {manag?.username}
             <ChevronsUpDown />
           </Button>
         </PopoverTrigger>
