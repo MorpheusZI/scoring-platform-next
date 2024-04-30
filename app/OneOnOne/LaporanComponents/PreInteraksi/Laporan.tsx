@@ -169,14 +169,13 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       Content: aditor?.getText()
     }
     const manag = Managers.find((man) => man.email === User.manager)
-    if (!DocumentCheck || DocumentCheck === undefined) {
-      const res = BikinDocument(ReturnObject, User, manag).then(r => {
-        handleSavingStatus("Saved")
-        setDocumentCheck(r)
-      })
-    }
+    const res = BikinDocument(ReturnObject, User, manag).then(r => {
+      handleSavingStatus("Saved")
+      setDocumentCheck(r)
+    })
     if (DocumentCheck?.managerContent === "" || !DocumentCheck?.managerHTML || !DocumentCheck.managerContent) {
       if (!DocumentCheck?.DocID) return
+      console.log("updated")
       const res = UpdatePreDocument(ReturnObject, User.UserID, DocumentCheck?.DocID).then(r => {
         handleSavingStatus("Saved")
         setDocumentCheck(r)
