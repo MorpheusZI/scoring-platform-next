@@ -14,7 +14,7 @@ import ToolBar from "../../../Rcomponents/Toolbar";
 import { getManagers, updateUserManager } from '../../Server/ambilData';
 
 // lucide/shadcn imports
-import { CircleAlert, Sparkles } from "lucide-react";
+import { Check, ChevronsUpDown, CircleAlert, Sparkles } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { DropdownMenuGroup, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from "@/components/ui/button";
@@ -22,16 +22,20 @@ import { Document, User } from '@prisma/client';
 import { Select, SelectValue, SelectContent, SelectGroup, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { AmbilPreDocument, BikinDocument, UpdatePreDocument, getUser } from '../../Server/BikinDocument';
 import { Subtopics } from '../../Server/Topics';
-import { redirect } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
 import { getDocs } from '@/app/ListMentee/Server/GetMentees';
+import { LoadingState } from '../../[RoomName]/page';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandList, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 
 type LaporanProps = {
   handleKomitmenDatatoAI?: (KomDataArr: KomitmenData[] | undefined) => void
   User: User | null;
   FuncCaller?: boolean;
   UserUpdater?: () => void;
-  handleSavingStatus?: (Status: string) => void
+  handleSavingStatus?: (Status: LoadingState) => void
 }
 
 type KomitmenData = {
@@ -49,7 +53,10 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
   const [DisabledAI, setDisabledAI] = useState(false)
   const [prevEditorContentCheck, setprevEditorContentCheck] = useState<string | undefined>("")
+  const [DocumentCheck, setDocumentCheck] = useState<Document | undefined>()
   const [Loaded, setLoaded] = useState(false)
+
+  const [Open, setOpen] = useState(false)
 
   useEffect(() => {
     const Userdata = localStorage.getItem('UserStore')
@@ -73,12 +80,15 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       const dac = doc[0]
       if (!dac) return
       aditor?.commands.setContent(dac.memberHTML)
+      setDocumentCheck(dac)
       setLoaded(!Loaded)
     })
+    //@ts-ignore
   }, [User, Managers])
 
   useEffect(() => {
     getHTMLandContent()
+    //@ts-ignore
   }, [FuncCaller])
 
   function handleSelectManagerChange(val: string) {
@@ -92,9 +102,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
           description: `Manager Untuk laporan ini: ${managerusername?.username}`
         })
       )
-      if (!res) {
-        console.log('nope')
-      }
     }
   }
   const customTaskList = TaskList.extend({
@@ -142,7 +149,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
           if (editor?.can().splitListItem('taskList')) {
             return "CTRL + K Lagi untuk mendeskripsikan"
           }
-          return "(Ctrl + K) untuk komitmen baru, (Enter) lalu (Tab) untuk deskripsi komitmen"
+          return "(Ctrl + K) untuk menambah aspirasi, lalu (Enter) dan (Tab) untuk menambah deskripsi"
         },
       }),
     ],
@@ -154,19 +161,27 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   })
 
   function getHTMLandContent() {
-    if (aditor?.getText() === undefined || aditor.getHTML() === undefined) return
     if (!User) return
     if (!handleSavingStatus) return
     handleSavingStatus("Saving")
-    const Uzer = getUser(User.UserID).then((Uxer) => Uxer)
     const ReturnObject: EditorTextandHTML = {
       HTML: aditor?.getHTML(),
       Content: aditor?.getText()
     }
     const manag = Managers.find((man) => man.email === User.manager)
-    const res = BikinDocument(ReturnObject, User, manag).then(r => {
-      handleSavingStatus("Saved")
-    })
+    if (!DocumentCheck || DocumentCheck === undefined) {
+      const res = BikinDocument(ReturnObject, User, manag).then(r => {
+        handleSavingStatus("Saved")
+        setDocumentCheck(r)
+      })
+    }
+    if (DocumentCheck?.managerContent === "" || !DocumentCheck?.managerHTML || !DocumentCheck.managerContent) {
+      if (!DocumentCheck?.DocID) return
+      const res = UpdatePreDocument(ReturnObject, User.UserID, DocumentCheck?.DocID).then(r => {
+        handleSavingStatus("Saved")
+        setDocumentCheck(r)
+      })
+    }
     return ReturnObject
   }
 
@@ -214,6 +229,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       Judul: $el.textContent,
       Isi: semuanya
     };
+    //@ts-ignore
   }), [$Judul, isiList])
 
 
@@ -226,6 +242,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       return
     }
     aditor?.commands.setContent(res)
+    //@ts-ignore
   }, [Loaded, Managers, User])
 
   function parseContent(content: string): string {
@@ -275,37 +292,91 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
   }
   const filteredManagers = Managers.filter((m) => m.email !== User?.email)
+
   const renderManagerSelect = useMemo(() => {
     if (User?.manager) {
-      return <Select value={User?.manager} onValueChange={value => handleSelectManagerChange(value)}>
-        <SelectTrigger className="gap-5">
-          <SelectValue placeholder="Pilih manager" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {filteredManagers.map((manager, index) => {
-              return <SelectItem value={manager.email} key={index}>{manager.username}</SelectItem>
-            })}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+      const manag = Managers.find((man) => man.email === User.manager)
+      return <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            aria-expanded={Open}
+            className="gap-5"
+          >
+            {User.manager}
+            <ChevronsUpDown />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent side="right" align="start">
+          <Command>
+            <CommandInput placeholder="Cari Manager..." />
+            <CommandEmpty>Cari Manager...</CommandEmpty>
+            <CommandList>
+              <CommandGroup>
+                {Managers.map((manager, index) => (
+                  <CommandItem
+                    key={index}
+                    value={manager.email}
+                    onSelect={(cmanager) => handleSelectManagerChange(cmanager)}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        manager.email === User.manager ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {manager.username}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     } else {
+      const manag = Managers.find((man) => man.email === User?.manager)
       return <div className="flex gap-4 items-center">
-        <Select onValueChange={value => handleSelectManagerChange(value)}>
-          <SelectTrigger className="gap-5">
-            <SelectValue placeholder="Pilih manager" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {filteredManagers.map((manager, index) => {
-                return <SelectItem value={manager.email} key={index}>{manager.username}</SelectItem>
-              })}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              aria-expanded={Open}
+              className="gap-5"
+            >
+              <span className="text-muted-foreground">Pilih Manager...</span>
+              <ChevronsUpDown />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent side="right" align="start">
+            <Command>
+              <CommandInput placeholder="Cari Manager..." />
+              <CommandEmpty>Cari Manager...</CommandEmpty>
+              <CommandList>
+                <CommandGroup>
+                  {Managers.map((manager, index) => (
+                    <CommandItem
+                      key={index}
+                      value={manager.email}
+                      onSelect={(cmanager) => handleSelectManagerChange(cmanager)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          manager.email === User?.manager ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {manager.username}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
         <CircleAlert className="w-7 h-7 text-red-500" />
       </div>
     }
+    //@ts-ignore
   }, [User])
 
   return (
@@ -325,7 +396,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
             </div>
           </div>
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
-            <h1>Ceritakan bagaimana berjalannya komitmenmu dalam 2 minggu terakhir.</h1>
+            <h1>Ceritakan aspirasimu di Talentlytica.</h1>
             <EditorContent editor={aditor} />
             <div className="flex flex-col gap-2">
               <div className="flex gap-4 self-end">

@@ -56,6 +56,7 @@ export default function Home() {
       default:
         break;
     }
+    //ts-ignore
   }, [SavingStatus])
   const setSummaryTextOnDocIDChange = useMemo(() => {
     if (!DocID) return
@@ -117,7 +118,6 @@ export default function Home() {
           })
         }
       })
-      console.log("eh udah ada summary cog astaga")
     }
   }
 

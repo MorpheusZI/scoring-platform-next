@@ -25,7 +25,6 @@ export async function getUser(UserID: number) {
 }
 
 export async function BikinDocument(Document: EditorTextandHTML, Uzer: User | undefined, manager: User | undefined) {
-  console.log(manager?.UserID, "ini manager si ", Uzer?.UserID)
   const DocumentMade = await prisma.document.create({
     data: {
       memberID: Uzer?.UserID,
@@ -35,6 +34,7 @@ export async function BikinDocument(Document: EditorTextandHTML, Uzer: User | un
       created_at: new Date().toISOString(),
     }
   })
+  return DocumentMade
 }
 
 export async function UpdatePreDocument(Document: EditorTextandHTML, UserID: number | undefined, DocID: number) {

@@ -33,7 +33,7 @@ export async function WriteToExcel(ExcelData: ExcelData) {
   const doc = new GoogleSpreadsheet(docid, jwt)
   await doc.loadInfo()
 
-  const sheet = doc.sheetsByIndex[1]
+  const sheet = doc.sheetsByIndex[2]
   const rows = await sheet.getRows()
   const addedRow = await sheet.addRow({
     user: ExcelData.member,

@@ -3,20 +3,25 @@ import { useState, useEffect, Suspense } from 'react'
 import Sidebar from "../LaporanComponents/PreInteraksi/Sidebar"
 import { EditorTextandHTML, KomitmenData } from '../LaporanComponents/PreInteraksi/Laporan'
 import Laporan from '../LaporanComponents/PreInteraksi/Laporan'
-import { redirect } from 'next/navigation'
+import { redirect, useRouter } from 'next/navigation'
 import { User } from '@prisma/client'
 import Loading from './loading'
 import { Button } from '@/components/ui/button'
-import { Check, CircleUser, Loader } from 'lucide-react'
+import { Check, CircleUser, CircleUserRound, Loader, LogOut, SquareUser } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from '@/components/ui/use-toast'
 import { getUser } from '../Server/BikinDocument'
+import { Select, SelectContent, SelectGroup, SelectTrigger } from '@/components/ui/select'
+
+export type LoadingState = "nill" | "Saved" | "Saving"
+
 export default function Home() {
+  const router = useRouter()
   const [KomitmenDatArr, setKomitmenDataArr] = useState<KomitmenData[] | undefined>([])
   const [KomitmenChange, setKomitmenChange] = useState<boolean>(false)
 
   const [HTMLContentCall, setHTMLContentCall] = useState<boolean>(false)
-  const [SaveStatus, setSaveStatus] = useState<string>("nill")
+  const [SaveStatus, setSaveStatus] = useState<LoadingState>("nill")
   const [UserUpdate, setUserUpdate] = useState<boolean>(false)
 
   const [UserData, setUserData] = useState<User | null>()
@@ -24,17 +29,22 @@ export default function Home() {
 
   useEffect(() => {
     setKomitmenChange(!KomitmenChange)
+    //@ts-ignore
   }, [])
 
+  function handleLogout() {
+    localStorage.removeItem('UserStore')
+    router.push('/Login')
+  }
   useEffect(() => {
     const Userdata = localStorage.getItem('UserStore')
+    if (!Userdata) {
+      return redirect('/Login')
+    }
     const UserJSON: User = Userdata ? JSON.parse(Userdata) : null
     const User = getUser(UserJSON.UserID).then(Uzer => {
       setUserData(Uzer)
     })
-    if (!Userdata) {
-      return redirect('/Login')
-    }
   }, [UserUpdate])
 
   const handleKomitmenData = (KomDataArr: KomitmenData[] | undefined) => {
@@ -62,7 +72,8 @@ export default function Home() {
         break;
       case "Saved":
         toast({
-          title: "Komitmen telah disimpan!"
+          title: "Komitmen telah disimpan!",
+          duration: 2000
         })
         setTimeout(() => {
           setSaveStatus("nill")
@@ -84,22 +95,38 @@ export default function Home() {
           <h1 className="text-3xl font-bold">Pre-Interaksi</h1>
           <p className="text-sm">Project IDP Product Designer</p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild className="hover:text-purple-300" variant="link">
-            <Link href={`/ListMentee`}>
-              <div className="flex gap-2">
-                <CircleUser />
-                <p>Switch to Manager</p>
-              </div>
-            </Link>
-          </Button>
+        <div className="flex gap-5">
           {RenderSave()}
+          <div className="flex items-center gap-4">
+            <Select >
+              <SelectTrigger className="w-fit">
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup className="flex w-fit flex-col items-start gap-2 py-3">
+                  <Button variant="link" asChild>
+                    <Link className="hover:text-purple-300" href={`/ListMentee`}>
+                      <div className="flex gap-2 items-center">
+                        <SquareUser />
+                        <p>Switch to manager</p>
+                      </div>
+                    </Link>
+                  </Button>
+                  <Button variant="link" asChild onClick={handleLogout}>
+                    <div className="flex hover:text-purple-300 hover:cursor-pointer gap-2 items-center">
+                      <LogOut />
+                      <p>Keluar</p>
+                    </div>
+                  </Button>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
       <div className="flex">
         <div className="w-[70%] border-r-2 border-r-black h-[85vh] overflow-y-scroll ">
           <Laporan
-            handleSavingStatus={(Status: string) => { setSaveStatus(Status) }}
+            handleSavingStatus={(Status: LoadingState) => { setSaveStatus(Status) }}
             FuncCaller={HTMLContentCall}
             User={UserData ? UserData : null}
             handleKomitmenDatatoAI={handleKomitmenData}

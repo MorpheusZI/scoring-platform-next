@@ -62,12 +62,14 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
       KomitmenAtasanEditor?.commands.setContent(Doc.managerHTML)
       Catatan?.commands.setContent(Doc.Catatan)
     })
+    // @ts-ignore
   }, [Mentee, User, CurrentDocID])
 
   const customTaskList = TaskList.extend({
     addKeyboardShortcuts() {
       return {
         'Mod-k': () => this.editor.commands.toggleTaskList(),
+        'Tab': () => this.editor.commands.toggleTaskList(),
       }
     },
   })
@@ -103,7 +105,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
             if (type) {
               return "Tulis Catatan"
             }
-            return "CTRL+K Untuk Membuat Komitmen"
+            return "(Ctrl + K) untuk menjelaskan situasi secara singkat, lalu (Enter) dan (Tab) untuk menjelaskan tugas, aksi, dan hasil."
           },
           emptyEditorClass: "first:before:h-0 first:before:text-gray-400 first:before:content-[attr(data-placeholder)] first:before:float-left",
           showOnlyCurrent: false,
@@ -124,7 +126,6 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
   const setSummaryReq = useMemo(() => {
     if (!User) return
     if (!Mentee) return
-    if (!KomitmenAtasanEditor?.getText()) return
     if (!KomitmenAtasanEditor?.getText() || KomitmenAtasanEditor.getText() === "") {
       toast({
         title: "Belum Lengkap!",
@@ -142,10 +143,12 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
       NamaMentee: Mentee.username
     }
     SummaryFunc(DataSummary)
+    // @ts-ignore
   }, [CallSummary])
 
   useEffect(() => {
     saveInteraksiDoc()
+    // @ts-ignore
   }, [CallSave])
 
   function saveInteraksiDoc() {

@@ -87,7 +87,7 @@ async function vertexAIStarChecker({ Judul, Isi }: KomitmenData) {
 
   const fulltextResponse = responseText.candidates[0].content.parts[0].text
   const cobaObj = fulltextResponse ? parseAIResponse(fulltextResponse, Judul) : null;
-  console.log("\n\n\n", fulltextResponse, "anjing")
+  console.log(fulltextResponse)
 
   return cobaObj;
 }
@@ -104,7 +104,6 @@ export async function testingdata(KomitmenDataArr: KomitmenData[]) {
   const results = await Promise.all(promises);
 
   const filteredResults = results.filter(result => result !== null);
-  console.log(filteredResults, "aduhh")
 
   return filteredResults
 }

@@ -9,12 +9,18 @@ export type AiAssistProps = {
   KomitmenDataArr: KomitmenData[]
   KomitmenChange: boolean
 }
+type AIResState = "null" | "err2" | "loading" | "fullfilled"
 
 export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistProps) {
-  const [AIResState, setAIResState] = useState<string>("null")
+  const [AIResState, setAIResState] = useState<AIResState>("null")
   const [AIRes, setAIRes] = useState<(AIResponse | null)[]>([])
 
   useEffect(() => {
+    AIStarCheck()
+    //@ts-ignore
+  }, [KomitmenChange]);
+
+  function AIStarCheck() {
     if (KomitmenDataArr.length !== 0 && AIRes !== null) {
       setAIResState("loading");
       testingdata(KomitmenDataArr).then(res => {
@@ -24,28 +30,19 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
         setAIResState("null");
       });
     }
-  }, [KomitmenChange]);
+  }
 
   useEffect(() => {
     if (!AIRes) return
-    const underlineTexts = AIRes.map((res) => {
-      if (!res) return
-      return Object.entries(res).filter(([k, v]) => k !== "Judul").map(([k, v]) => {
-        const val = v as NestedObject
-        return val.text
-      })
-    })
     const theresAnEmptyObjectOmg = AIRes.filter((AI) => AI?.Situasi.Komentar === "" && AI.Tugas.Komentar === "" && AI.Aksi.Komentar === "" && AI.Hasil.Komentar === "")
     if (theresAnEmptyObjectOmg.length > 0) {
-      console.log("Ada empty object cuy", theresAnEmptyObjectOmg)
+      testingdata(KomitmenDataArr).then(res => {
+        setAIRes(res)
+        setAIResState("fullfilled")
+      })
       setAIResState("err2")
-      setTimeout(() => {
-        testingdata(KomitmenDataArr).then(res => {
-          setAIRes(res)
-          setAIResState("fullfilled")
-        })
-      }, 3000);
     }
+    // @ts-ignore
   }, [AIRes])
 
   function CheckPercentage(percent: string | undefined) {
@@ -94,9 +91,9 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
         </div>
         break;
       case "err2":
-        return <div className="flex justify-evenly py-5 items-center text-black ">
-          <LoaderCircle className="w-12 h-12 animate-spin" />
-          <p className="text-sm">AI Ngawur. mencoba ulang...</p>
+        return <div className="flex flex-col py-5 items-center text-black">
+          <p className="text-sm">Menghadapi error dari AI.</p>
+          <Button onClick={AIStarCheck}>Coba Ulang</Button>
         </div>
         break;
       case "fullfilled":
@@ -113,6 +110,7 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
         })
         break;
     }
+    //@ts-ignore
   }, [KomitmenChange, AIResState])
 
   return (

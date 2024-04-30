@@ -95,6 +95,7 @@ export default function Sidebar({ CurrentDocID, aiResp, SummaryCall, User, Updat
       </div>
     })
     return bruh
+    //@ts-ignore
   }, [HistoricalDocs, aiResp, UpdateDocHistory, CurrentDocID])
   return (
     <Tabs className="flex w-full justify-start bg-gray-100 h-[85vh] overflow-y-auto" defaultValue="main">

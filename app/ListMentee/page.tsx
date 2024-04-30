@@ -4,13 +4,13 @@ import { redirect, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { getDocs, getMentees } from "./Server/GetMentees"
 import { Prisma, User } from "@prisma/client"
-import { Loader2, UsersRound } from "lucide-react"
+import { ChevronDown, CircleUserRound, Loader2, LogOut, UserRoundX, UsersRound } from "lucide-react"
 import Link from "next/link"
+import { Select, SelectGroup, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
 
 export default function ListMentee() {
   const [UserData, setUserData] = useState<User | null>(null)
   const [MenteeLists, setMenteeLists] = useState<User[] | undefined>([])
-  const [AdaDokumen, setAdaDokumen] = useState<boolean>(true)
   const [LoadingList, setLoadingList] = useState(true)
   const router = useRouter()
 
@@ -30,6 +30,7 @@ export default function ListMentee() {
     if (!Userdata) {
       router.push('/Login')
     }
+    //@ts-ignore
   }, [])
 
   useEffect(() => {
@@ -39,20 +40,23 @@ export default function ListMentee() {
       setMenteeLists(R)
       setLoadingList(true)
     })
-
+    //@ts-ignore
   }, [UserData])
-  useEffect(() => {
+  function AdaDokumen(mentee: User): boolean | undefined {
     if (!UserData) return
-    const mentee = MenteeLists?.filter((men) => men.manager === UserData?.email)
-    if (!mentee) return
-    mentee.map((mentee) => {
-      getDocs(mentee.UserID, UserData?.UserID).then((docs) => {
-        if (docs.length > 0) {
-          setAdaDokumen(false)
-        }
-      })
+    const res = getDocs(mentee.UserID, UserData.UserID).then((docs) => {
+      const dac = docs[0]
+      if (!dac) {
+        return false
+      }
+      if (dac.memberContent === "" || !dac.memberContent || !dac.memberHTML) {
+        console.log("wanjas", dac.memberHTML)
+        return true
+      }
+      return true
     })
-  }, [MenteeLists])
+    return res
+  }
   return (
     <div className="flex flex-col">
       <div className="heder flex w-full items-center justify-between py-5 px-10 border-b border-b-black ">
@@ -60,16 +64,31 @@ export default function ListMentee() {
           <p className="text-3xl font-semibold">List Anggota</p>
           <p>Hello {UserData?.username}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="link" asChild>
-            <Link className="hover:text-purple-300" href={`/OneOnOne/${UserData?.username}`}>
-              <div className="flex gap-2 items-center">
-                <UsersRound />
-                <p>Switch to team member</p>
-              </div>
-            </Link>
-          </Button>
-          <Button onClick={handleLogout}>Log Off</Button>
+        <div className="flex items-center gap-4">
+          <CircleUserRound className="mr-[-10px] w-7 h-7" />
+          <p>Hello! {UserData?.username}</p>
+          <Select >
+            <SelectTrigger className="w-fit">
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup className="flex w-fit flex-col items-start gap-2 py-3">
+                <Button variant="link" asChild>
+                  <Link className="hover:text-purple-300" href={`/OneOnOne/${UserData?.username}`}>
+                    <div className="flex gap-2 items-center">
+                      <UsersRound />
+                      <p>Switch to team member</p>
+                    </div>
+                  </Link>
+                </Button>
+                <Button variant="link" asChild onClick={handleLogout}>
+                  <div className="flex hover:text-purple-300 hover:cursor-pointer gap-2 items-center">
+                    <LogOut />
+                    <p>Keluar</p>
+                  </div>
+                </Button>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <div className="flex w-full p-20 flex-col justify-center items-center">
@@ -82,7 +101,7 @@ export default function ListMentee() {
             {LoadingList && MenteeLists ? MenteeLists.map((Mentee, index) => {
               return <div key={index} className="grid items-center w-full grid-cols-3 py-2 px-5 gap-1 border-2 border-black">
                 <p className="col-span-2">{Mentee.username}</p>
-                <Button className="w-fit" onClick={() => handleMulaiInteraksi(Mentee)} disabled={AdaDokumen}>Mulai Interaksi</Button>
+                <Button className="w-fit" onClick={() => handleMulaiInteraksi(Mentee)}>Mulai Interaksi</Button>
               </div>
             }) : <div className="flex py-12 w-full gap-4 items-center justify-center border-2 border-black">
               <Loader2 className="w-12 h-12 animate-spin text-black" />
