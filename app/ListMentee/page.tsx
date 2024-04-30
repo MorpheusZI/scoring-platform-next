@@ -55,7 +55,6 @@ export default function ListMentee() {
       }
       return true
     })
-    return res
   }
   return (
     <div className="flex flex-col">
