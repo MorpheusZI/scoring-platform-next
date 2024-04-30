@@ -7,6 +7,7 @@ import { Prisma, User } from "@prisma/client"
 import { ChevronDown, CircleUserRound, Loader2, LogOut, UserRoundX, UsersRound } from "lucide-react"
 import Link from "next/link"
 import { Select, SelectGroup, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 export default function ListMentee() {
   const [UserData, setUserData] = useState<User | null>(null)
@@ -50,7 +51,6 @@ export default function ListMentee() {
         return false
       }
       if (dac.memberContent === "" || !dac.memberContent || !dac.memberHTML) {
-        console.log("wanjas", dac.memberHTML)
         return true
       }
       return true
@@ -64,13 +64,19 @@ export default function ListMentee() {
           <p>Hello {UserData?.username}</p>
         </div>
         <div className="flex items-center gap-4">
-          <CircleUserRound className="mr-[-10px] w-7 h-7" />
+          <CircleUserRound className=" w-8 h-8" />
           <p>Hello! {UserData?.username}</p>
-          <Select >
-            <SelectTrigger className="w-fit">
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup className="flex w-fit flex-col items-start gap-2 py-3">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="p-2"
+              >
+                <ChevronDown />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <div className="flex w-fit items-start flex-col gap-2 ">
                 <Button variant="link" asChild>
                   <Link className="hover:text-purple-300" href={`/OneOnOne/${UserData?.username}`}>
                     <div className="flex gap-2 items-center">
@@ -85,9 +91,9 @@ export default function ListMentee() {
                     <p>Keluar</p>
                   </div>
                 </Button>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
       <div className="flex w-full p-20 flex-col justify-center items-center">

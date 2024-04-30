@@ -7,11 +7,12 @@ import { redirect, useRouter } from 'next/navigation'
 import { User } from '@prisma/client'
 import Loading from './loading'
 import { Button } from '@/components/ui/button'
-import { Check, CircleUser, CircleUserRound, Loader, LogOut, SquareUser } from 'lucide-react'
+import { Check, ChevronDown, CircleUser, CircleUserRound, Loader, LogOut, SquareUser } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from '@/components/ui/use-toast'
 import { getUser } from '../Server/BikinDocument'
 import { Select, SelectContent, SelectGroup, SelectTrigger } from '@/components/ui/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 export type LoadingState = "nill" | "Saved" | "Saving"
 
@@ -98,11 +99,17 @@ export default function Home() {
         <div className="flex gap-5">
           {RenderSave()}
           <div className="flex items-center gap-4">
-            <Select >
-              <SelectTrigger className="w-fit">
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup className="flex w-fit flex-col items-start gap-2 py-3">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="p-2"
+                >
+                  <ChevronDown />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <div className="flex w-fit items-start flex-col gap-2 ">
                   <Button variant="link" asChild>
                     <Link className="hover:text-purple-300" href={`/ListMentee`}>
                       <div className="flex gap-2 items-center">
@@ -117,9 +124,9 @@ export default function Home() {
                       <p>Keluar</p>
                     </div>
                   </Button>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>

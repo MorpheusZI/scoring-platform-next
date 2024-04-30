@@ -36,10 +36,6 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
     if (!AIRes) return
     const theresAnEmptyObjectOmg = AIRes.filter((AI) => AI?.Situasi.Komentar === "" && AI.Tugas.Komentar === "" && AI.Aksi.Komentar === "" && AI.Hasil.Komentar === "")
     if (theresAnEmptyObjectOmg.length > 0) {
-      testingdata(KomitmenDataArr).then(res => {
-        setAIRes(res)
-        setAIResState("fullfilled")
-      })
       setAIResState("err2")
     }
     // @ts-ignore

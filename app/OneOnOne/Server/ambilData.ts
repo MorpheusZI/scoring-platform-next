@@ -87,7 +87,6 @@ async function vertexAIStarChecker({ Judul, Isi }: KomitmenData) {
 
   const fulltextResponse = responseText.candidates[0].content.parts[0].text
   const cobaObj = fulltextResponse ? parseAIResponse(fulltextResponse, Judul) : null;
-  console.log(fulltextResponse)
 
   return cobaObj;
 }
