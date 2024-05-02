@@ -7,7 +7,7 @@ import { redirect, useRouter } from 'next/navigation'
 import { User } from '@prisma/client'
 import Loading from './loading'
 import { Button } from '@/components/ui/button'
-import { Check, ChevronDown, CircleUser, CircleUserRound, Loader, LogOut, SquareUser } from 'lucide-react'
+import { Check, Ellipsis, Loader, LogOut, SquareUser } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from '@/components/ui/use-toast'
 import { getUser } from '../Server/BikinDocument'
@@ -105,7 +105,7 @@ export default function Home() {
                   variant="outline"
                   className="p-2"
                 >
-                  <ChevronDown />
+                  <Ellipsis />
                 </Button>
               </PopoverTrigger>
               <PopoverContent>

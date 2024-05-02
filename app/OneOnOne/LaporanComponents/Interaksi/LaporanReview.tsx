@@ -35,7 +35,6 @@ type LaporanProps = {
 export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, SaveFunc, CurrentDocID }: LaporanProps) {
   const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
   const [Mentee, setMentee] = useState<User | null>()
-  const { toast } = useToast()
   useEffect(() => {
     const MenteeData = sessionStorage.getItem('MenteeData')
     const MenteeDat = MenteeData ? JSON.parse(MenteeData) : null
@@ -127,12 +126,6 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
     if (!User) return
     if (!Mentee) return
     if (!KomitmenAtasanEditor?.getText() || KomitmenAtasanEditor.getText() === "") {
-      toast({
-        title: "Belum Lengkap!",
-        description: "Anda belum mengisi komitmen Atasan",
-        variant: "destructive",
-        duration: 1000,
-      })
       return
     }
     const DataSummary: SummaryReq = {
@@ -155,12 +148,6 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
     if (!User) return
     if (!Mentee) return
     if (!KomitmenAtasanEditor?.getText() || KomitmenAtasanEditor.getText() === "") {
-      toast({
-        title: "Belum Lengkap!",
-        description: "Anda belum mengisi komitmen Atasan",
-        variant: "destructive",
-        duration: 1000,
-      })
       return
     }
     const DataSummary: SummaryReq = {
@@ -192,7 +179,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
             <Accordion type="single" collapsible defaultValue="KomitmenBawahan">
               <AccordionItem value="KomitmenBawahan" className="px-7 border-b-transparent border-l-2 border-l-gray-200">
                 <AccordionTrigger>
-                  <h1 className="text-xl font-semibold">Komitmen Member</h1>
+                  <h1 className="text-xl font-semibold">Aspirasi Member</h1>
                 </AccordionTrigger>
                 <AccordionContent>
                   <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor)} editor={PreInteraksiEditor} />

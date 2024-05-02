@@ -4,14 +4,19 @@ import { redirect, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { getDocs, getMentees } from "./Server/GetMentees"
 import { Prisma, User } from "@prisma/client"
-import { ChevronDown, CircleUserRound, Loader2, LogOut, UserRoundX, UsersRound } from "lucide-react"
+import { ChevronDown, CircleUserRound, Ellipsis, Loader2, LogOut, UserRoundX, UsersRound } from "lucide-react"
 import Link from "next/link"
 import { Select, SelectGroup, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
+interface Mentee extends User {
+  ready?: boolean
+}
+
 export default function ListMentee() {
   const [UserData, setUserData] = useState<User | null>(null)
   const [MenteeLists, setMenteeLists] = useState<User[] | undefined>([])
+  const [NewMenteeLists, setNewMenteeLists] = useState<Mentee[] | undefined>([])
   const [LoadingList, setLoadingList] = useState(true)
   const router = useRouter()
 
@@ -43,26 +48,21 @@ export default function ListMentee() {
     })
     //@ts-ignore
   }, [UserData])
-  function AdaDokumen(mentee: User): boolean | undefined {
-    if (!UserData) return
-    const res = getDocs(mentee.UserID, UserData.UserID).then((docs) => {
-      const dac = docs[0]
-      if (!dac) {
-        return false
-      }
-      if (dac.memberContent === "" || !dac.memberContent || !dac.memberHTML) {
-        return true
-      }
-      return true
+
+  function RenderMentees() {
+    if (!UserData) return null
+    if (!MenteeLists) return null
+    return MenteeLists.map((Mentee, index) => {
+      return <div key={index} className="grid items-center w-full grid-cols-3 py-2 px-5 gap-1 border-2 border-black">
+        <p className="col-span-2">{Mentee.username}</p>
+        <Button className="w-fit" onClick={() => handleMulaiInteraksi(Mentee)}>Mulai Interaksi</Button>
+      </div>
     })
   }
   return (
     <div className="flex flex-col">
       <div className="heder flex w-full items-center justify-between py-5 px-10 border-b border-b-black ">
-        <div className="flex flex-col">
-          <p className="text-3xl font-semibold">List Anggota</p>
-          <p>Hello {UserData?.username}</p>
-        </div>
+        <p className="text-3xl font-semibold">List Anggota</p>
         <div className="flex items-center gap-4">
           <CircleUserRound className=" w-8 h-8" />
           <p>Hello! {UserData?.username}</p>
@@ -72,7 +72,7 @@ export default function ListMentee() {
                 variant="outline"
                 className="p-2"
               >
-                <ChevronDown />
+                <Ellipsis />
               </Button>
             </PopoverTrigger>
             <PopoverContent>
@@ -103,12 +103,7 @@ export default function ListMentee() {
             <p className="col-span-1">Action</p>
           </div>
           <div >
-            {LoadingList && MenteeLists ? MenteeLists.map((Mentee, index) => {
-              return <div key={index} className="grid items-center w-full grid-cols-3 py-2 px-5 gap-1 border-2 border-black">
-                <p className="col-span-2">{Mentee.username}</p>
-                <Button className="w-fit" onClick={() => handleMulaiInteraksi(Mentee)}>Mulai Interaksi</Button>
-              </div>
-            }) : <div className="flex py-12 w-full gap-4 items-center justify-center border-2 border-black">
+            {LoadingList && MenteeLists ? RenderMentees() : <div className="flex py-12 w-full gap-4 items-center justify-center border-2 border-black">
               <Loader2 className="w-12 h-12 animate-spin text-black" />
               <p className="text-lg">Loading</p>
             </div>}

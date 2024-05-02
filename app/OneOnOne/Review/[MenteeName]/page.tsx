@@ -59,7 +59,10 @@ export default function Home() {
     //ts-ignore
   }, [SavingStatus])
   const setSummaryTextOnDocIDChange = useMemo(() => {
-    if (!DocID) return
+    if (!DocID) {
+      setSummaryText(undefined)
+      return
+    }
     getDocByDocID(DocID).then((doc) => {
       if (!doc?.Summary) return
       setSummaryText(doc?.Summary)
