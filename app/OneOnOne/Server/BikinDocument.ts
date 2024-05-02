@@ -24,20 +24,22 @@ export async function getUser(UserID: number) {
   return User
 }
 
-export async function BikinDocument(Document: EditorTextandHTML, Uzer: User | undefined, manager: User | undefined) {
+export async function BikinDocument(Document: EditorTextandHTML, Document2: string | undefined, Document3: string | undefined, Uzer: User | undefined, manager: User | undefined) {
   const DocumentMade = await prisma.document.create({
     data: {
       memberID: Uzer?.UserID,
       managerID: manager?.UserID,
       memberHTML: Document.HTML,
       memberContent: Document.Content,
+      memberHTML2: Document2,
+      memberHTML3: Document3,
       created_at: new Date().toISOString(),
     }
   })
   return DocumentMade
 }
 
-export async function UpdatePreDocument(Document: EditorTextandHTML, UserID: number | undefined, DocID: number) {
+export async function UpdatePreDocument(Document: EditorTextandHTML, Document2: string | undefined, Document3: string | undefined, UserID: number | undefined, DocID: number) {
   const DocumentUpdated = await prisma.document.update({
     where: {
       DocID: DocID,
@@ -45,6 +47,8 @@ export async function UpdatePreDocument(Document: EditorTextandHTML, UserID: num
     },
     data: {
       memberHTML: Document.HTML,
+      memberHTML2: Document2,
+      memberHTML3: Document3,
       memberContent: Document.Content
     }
   })

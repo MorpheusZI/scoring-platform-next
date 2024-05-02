@@ -2,7 +2,7 @@
 import '../LaporStyles.css'
 import React, { useState, useEffect, useMemo } from "react"
 // tipTap imports
-import { useEditor, Editor, EditorContent, JSONContent } from '@tiptap/react';
+import { useEditor, Editor, EditorContent, JSONContent, EditorOptions } from '@tiptap/react';
 import { Underline } from '@tiptap/extension-underline';
 import { StarterKit } from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -54,6 +54,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   const [DisabledAI, setDisabledAI] = useState(false)
   const [prevEditorContentCheck, setprevEditorContentCheck] = useState<string | undefined>("")
   const [DocumentCheck, setDocumentCheck] = useState<Document | undefined>()
+  const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
   const [Loaded, setLoaded] = useState(false)
   const [Open, setOpen] = useState(false)
 
@@ -80,6 +81,8 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       const dac = doc[0]
       if (!dac) return
       aditor?.commands.setContent(dac.memberHTML)
+      editor2?.commands.setContent(dac.memberHTML2)
+      editor3?.commands.setContent(dac.memberHTML3)
       setDocumentCheck(dac)
       setLoaded(!Loaded)
     })
@@ -128,26 +131,29 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       Content: aditor?.getText()
     }
     const manag = Managers.find((man) => man.email === User.manager)
+    console.log("Yaya")
     if (DocumentCheck?.managerContent === "" || !DocumentCheck?.managerHTML || !DocumentCheck.managerContent) {
-      if (!DocumentCheck?.DocID) return
-      const res = UpdatePreDocument(ReturnObject, User.UserID, DocumentCheck?.DocID).then(r => {
+      if (!DocumentCheck?.DocID) {
+
+        console.log("Yay")
+        const res = BikinDocument(ReturnObject, editor2?.getHTML(), editor3?.getHTML(), User, manag).then(r => {
+          handleSavingStatus("Saved")
+          setDocumentCheck(r)
+        })
+        return
+      }
+      const res = UpdatePreDocument(ReturnObject, editor2?.getHTML(), editor3?.getHTML(), User.UserID, DocumentCheck?.DocID).then(r => {
         handleSavingStatus("Saved")
         setDocumentCheck(r)
       })
       return
     }
-    const res = BikinDocument(ReturnObject, User, manag).then(r => {
-      handleSavingStatus("Saved")
-      setDocumentCheck(r)
-    })
     return ReturnObject
   }
 
   function parseContent(content: string): string {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(content, 'text/html');
-    const taskListItems = doc.querySelectorAll('ul[data-type="taskList"]');
-
+    const doc = parser.parseFromString(content, 'text/html'); const taskListItems = doc.querySelectorAll('ul[data-type="taskList"]');
     let filteredContent = '';
     let skipContent = false;
 
@@ -287,6 +293,45 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     },
   })
 
+  const Editoropts: Partial<EditorOptions> | undefined = {
+    extensions: [
+      StarterKit.configure({
+        blockquote: {
+          HTMLAttributes: {
+            class: "pl-5 px-3 border-l-2 border-gray-400"
+          },
+        },
+        bulletList: {
+          HTMLAttributes: {
+            class: "mx-6 px-2 list-disc list-outside "
+          }
+        }, orderedList: {
+          HTMLAttributes: {
+            class: "mx-7 list-decimal list-outside "
+          }
+        },
+
+      }),
+      Underline,
+      customTaskList,
+      TaskItem,
+      Placeholder.configure({
+        showOnlyCurrent: false,
+        placeholder: ({ editor, node }) => {
+          if (node.type.name === "taskList") {
+            return "CTRL + K Lagi untuk mendeskripsikan"
+          }
+          return "(Ctrl + K) untuk menambah aspirasi, lalu (Enter) dan (Tab) untuk menambah deskripsi"
+        },
+      }),
+    ],
+    editorProps: {
+      attributes: {
+        class: "w-full px-3 py-4 text-black outline-none"
+      }
+    },
+  }
+
   const aditor = useEditor({
     onUpdate: ({ editor }) => {
       if (prevEditorContentCheck === aditor?.getText()) {
@@ -332,6 +377,8 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       }
     },
   })
+  const editor2 = useEditor(Editoropts)
+  const editor3 = useEditor(Editoropts)
 
   const $Isi = aditor?.$nodes('paragraph')
   const $OLItem = aditor?.$nodes('orderedList')
@@ -383,7 +430,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   return (
     <div id="LaporanWrap" className="h-fit relative">
       <div className="sticky top-0 z-10">
-        <ToolBar editor={aditor} />
+        <ToolBar editor={ActiveEditor} />
       </div>
       <div className="editor-container">
         <div className="flex flex-col gap-6 px-7 py-6">
@@ -397,8 +444,8 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
             </div>
           </div>
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
-            <h1>Ceritakan aspirasimu di Talentlytica.</h1>
-            <EditorContent editor={aditor} />
+            <h1>Ceritakan goals atau aspirasi karirmu di Talentlytica?</h1>
+            <EditorContent onFocus={() => setActiveEditor(aditor)} editor={aditor} />
             <div className="flex gap-4 self-end">
               <Button
                 disabled={DisabledAI}
@@ -408,6 +455,14 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
                 <p>Cek Kualitas Deskripsi</p>
               </Button>
             </div>
+          </div>
+          <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
+            <h1>Apa yang menjadi kendala goal tersebut belum dapat anda capai?</h1>
+            <EditorContent onFocus={() => setActiveEditor(editor2)} editor={editor2} />
+          </div>
+          <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
+            <h1>Apa saja yang kamu butuhkan utk mencapai goals karir itu? dan apakah ada external support dari atasan atau Talentlytica dapat berikan?</h1>
+            <EditorContent onFocus={() => setActiveEditor(editor3)} editor={editor3} />
           </div>
         </div>
       </div>

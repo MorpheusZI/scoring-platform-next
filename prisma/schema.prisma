@@ -26,6 +26,8 @@ model Document {
   DocID          Int      @id @default(autoincrement())
   memberContent  String?
   memberHTML     String?
+  memberHTML2    String?
+  memberHTML3    String?
   memberID       Int?      
   managerContent String?
   managerHTML    String?
