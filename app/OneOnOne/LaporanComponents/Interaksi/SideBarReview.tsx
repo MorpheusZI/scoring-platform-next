@@ -68,7 +68,7 @@ export default function Sidebar({ CurrentDocID, aiResp, SummaryCall, User, Updat
   function CountKomitmen(Komitmen: string | null) {
     const regex = new RegExp("<ul[^>]*>", "g")
     const matches = Komitmen?.match(regex)
-    return matches ? matches?.length : "Gak Ketemu jir"
+    return matches ? matches?.length : "0"
   }
   function handleDocIDchange(docId: number, CurrentDocID: number | undefined) {
     if (!ChangeDocID) return
