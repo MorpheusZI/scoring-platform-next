@@ -192,7 +192,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
             <Accordion type="single" collapsible defaultValue="KomitmenBawahan">
               <AccordionItem value="KomitmenBawahan" className="px-7 border-b-transparent border-l-2 border-l-gray-200">
                 <AccordionTrigger>
-                  <h1 className="text-xl font-semibold">Aspirasi Member</h1>
+                  <h1 className="text-xl font-semibold">Komitmen Member</h1>
                 </AccordionTrigger>
                 <AccordionContent>
                   <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor)} editor={PreInteraksiEditor} />

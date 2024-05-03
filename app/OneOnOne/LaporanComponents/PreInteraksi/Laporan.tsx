@@ -324,7 +324,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
           if (node.type.name === "taskList") {
             return "CTRL + K Lagi untuk mendeskripsikan"
           }
-          return "(Ctrl + K) untuk menambah aspirasi, lalu (Enter) dan (Tab) untuk menambah deskripsi"
+          return "(Ctrl + K) untuk menjelaskan situasi secara singkat, lalu (Enter) dan (Tab) untuk menjelaskan tugas, aksi, dan hasil."
         },
       }),
     ],
@@ -447,7 +447,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
             </div>
           </div>
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
-            <h1>Ceritakan goals atau aspirasi karirmu di Talentlytica?</h1>
+            <h1>Ceritakan bagaimana progress KPI kamu hingga saat ini?</h1>
             <EditorContent editor={aditor} />
             <div className="flex gap-4 self-end">
               <Button
