@@ -81,8 +81,8 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       const dac = doc[0]
       if (!dac) return
       aditor?.commands.setContent(dac.memberHTML)
-      editor2?.commands.setContent(dac.memberHTML2)
-      editor3?.commands.setContent(dac.memberHTML3)
+      // editor2?.commands.setContent(dac.memberHTML2)
+      // editor3?.commands.setContent(dac.memberHTML3)
       setDocumentCheck(dac)
       setLoaded(!Loaded)
     })
@@ -133,19 +133,19 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     const manag = Managers.find((man) => man.email === User.manager)
     if (DocumentCheck?.managerContent === "" || !DocumentCheck?.managerHTML || !DocumentCheck.managerContent) {
       if (!DocumentCheck?.DocID) {
-        const res = BikinDocument(ReturnObject, editor2?.getHTML(), editor3?.getHTML(), User, manag).then(r => {
+        const res = BikinDocument(ReturnObject, /* editor2?.getHTML(), editor3?.getHTML(), */ User, manag).then(r => {
           handleSavingStatus("Saved")
           setDocumentCheck(r)
         })
         return
       }
-      const res = UpdatePreDocument(ReturnObject, editor2?.getHTML(), editor3?.getHTML(), User.UserID, DocumentCheck?.DocID).then(r => {
+      const res = UpdatePreDocument(ReturnObject,/*  editor2?.getHTML(), editor3?.getHTML(), */ User.UserID, DocumentCheck?.DocID).then(r => {
         handleSavingStatus("Saved")
         setDocumentCheck(r)
       })
       return
     } else {
-      const res = BikinDocument(ReturnObject, editor2?.getHTML(), editor3?.getHTML(), User, manag).then(r => {
+      const res = BikinDocument(ReturnObject,/*  editor2?.getHTML(), editor3?.getHTML(), */ User, manag).then(r => {
         handleSavingStatus("Saved")
         setDocumentCheck(r)
       })
@@ -378,7 +378,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
           if (editor?.can().splitListItem('taskList')) {
             return "CTRL + K Lagi untuk mendeskripsikan"
           }
-          return "(Ctrl + K) untuk menambah aspirasi, lalu (Enter) dan (Tab) untuk menambah deskripsi"
+          return "(Ctrl + K) untuk menjelaskan situasi secara singkat, lalu (Enter) dan (Tab) untuk menjelaskan tugas, aksi, dan hasil."
         },
       }),
     ],
@@ -388,8 +388,8 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       }
     },
   })
-  const editor2 = useEditor(Editoropts)
-  const editor3 = useEditor(Editoropts)
+  // const editor2 = useEditor(Editoropts)
+  // const editor3 = useEditor(Editoropts)
 
   const $Isi = aditor?.$nodes('paragraph')
   const $OLItem = aditor?.$nodes('orderedList')
@@ -467,6 +467,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
               </Button>
             </div>
           </div>
+          {/*
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
             <h1>Apa yang menjadi kendala goal tersebut belum dapat anda capai?</h1>
             <EditorContent onFocus={() => setActiveEditor(editor2)} editor={editor2} />
@@ -475,6 +476,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
             <h1>Apa saja yang kamu butuhkan utk mencapai goals karir itu? dan apakah ada external support dari atasan atau Talentlytica dapat berikan?</h1>
             <EditorContent onFocus={() => setActiveEditor(editor3)} editor={editor3} />
           </div>
+          */}
         </div>
       </div>
     </div>

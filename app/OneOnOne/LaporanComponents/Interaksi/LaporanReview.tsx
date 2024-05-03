@@ -46,6 +46,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
     if (!User) return
     if (!Mentee) return
     if (!CurrentDocID || CurrentDocID === null || CurrentDocID == undefined) {
+      PreInteraksiEditor?.commands.setContent("")
       KomitmenAtasanEditor?.commands.setContent("")
       Catatan?.commands.setContent("")
       getDocs(Mentee.UserID, User.UserID).then((docs) => {
@@ -53,16 +54,16 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
         const doc = dac.find(doc => doc.managerContent === null)
         if (!doc) return
         PreInteraksiEditor?.commands.setContent(doc.memberHTML)
-        PreInteraksiEditor2?.commands.setContent(doc.memberHTML2)
-        PreInteraksiEditor3?.commands.setContent(doc.memberHTML3)
+        // PreInteraksiEditor2?.commands.setContent(doc.memberHTML2)
+        // PreInteraksiEditor3?.commands.setContent(doc.memberHTML3)
       })
       return
     }
     getDocByDocID(CurrentDocID).then((Doc) => {
       if (!Doc) return
       PreInteraksiEditor?.commands.setContent(Doc.memberHTML)
-      PreInteraksiEditor2?.commands.setContent(Doc.memberHTML2)
-      PreInteraksiEditor3?.commands.setContent(Doc.memberHTML3)
+      // PreInteraksiEditor2?.commands.setContent(Doc.memberHTML2)
+      // PreInteraksiEditor3?.commands.setContent(Doc.memberHTML3)
       KomitmenAtasanEditor?.commands.setContent(Doc.managerHTML)
       Catatan?.commands.setContent(Doc.Catatan)
     })
@@ -124,8 +125,8 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
     return editor
   }
   const PreInteraksiEditor = useEditor(editorOptions())
-  const PreInteraksiEditor2 = useEditor(editorOptions())
-  const PreInteraksiEditor3 = useEditor(editorOptions())
+  // const PreInteraksiEditor2 = useEditor(editorOptions())
+  // const PreInteraksiEditor3 = useEditor(editorOptions())
   const KomitmenAtasanEditor = useEditor(editorOptions())
   const Catatan = useEditor(editorOptions("catatan"))
 
@@ -195,6 +196,8 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
                   <h1 className="text-xl font-semibold">Komitmen Member</h1>
                 </AccordionTrigger>
                 <AccordionContent>
+                  <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor)} editor={PreInteraksiEditor} />
+                  {/*
                   <div className="flex flex-col gap-10 py-2">
                     <div className="flex flex-col px-2">
                       <h1>1. Ceritakan goals atau aspirasi karirmu di Talentlytica?</h1>
@@ -209,6 +212,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
                       <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor3)} editor={PreInteraksiEditor3} />
                     </div>
                   </div>
+                */}
 
                 </AccordionContent>
               </AccordionItem>
