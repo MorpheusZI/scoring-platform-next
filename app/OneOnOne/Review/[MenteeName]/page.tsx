@@ -11,7 +11,8 @@ import { SummaryReq, vertexAISummarizer } from '../../Server/ambilData'
 import { BikinInterDocument, InteraksiContents, UpdateInterDocument } from '../../Server/BikinDocument'
 import { getDocByDocID, getDocs } from '@/app/ListMentee/Server/GetMentees'
 import { ExcelData, WriteToExcel } from '../../Server/Gsheet'
-import { Check, Loader } from 'lucide-react'
+import { Check, Loader, Save } from 'lucide-react'
+type savingStatus = "nill" | "Saving" | "Saved"
 export default function Home() {
   const [UserData, setUserData] = useState<User | null>()
   const [DocID, setDocID] = useState<number | undefined>()
@@ -21,7 +22,7 @@ export default function Home() {
   const [SummaryText, setSummaryText] = useState<string | undefined>()
 
   const [SaveCall, setSaveCall] = useState<boolean>(false)
-  const [SavingStatus, setSavingStatus] = useState("nill")
+  const [SavingStatus, setSavingStatus] = useState<savingStatus>("nill")
   const { toast } = useToast()
 
   useEffect(() => {
@@ -34,7 +35,13 @@ export default function Home() {
   const renderSave = useMemo(() => {
     switch (SavingStatus) {
       case "nill":
-        return <Button onClick={() => setSaveCall(!SaveCall)}>Simpan</Button>
+        return <Button onClick={() => {
+          setSaveCall(paveCall => {
+            console.log(paveCall, "A", !paveCall, "B", SaveCall)
+            console.log("Anjay", SaveCall)
+            return !paveCall
+          })
+        }}>Simpan</Button>
         break;
       case "Saving":
         return <div className="px-16 py-2 rounded-lg bg-black">
@@ -54,6 +61,10 @@ export default function Home() {
           <Check className="text-white" />
         </div>
       default:
+        return <Button onClick={() => {
+          console.log(SaveCall)
+          setSaveCall(!SaveCall)
+        }}>Simpan</Button>
         break;
     }
     //ts-ignore
@@ -74,10 +85,11 @@ export default function Home() {
   }
 
   function handleSavenSummary(Interaksi: InteraksiContents, SummaryReq: SummaryReq) {
+    console.log("CalledFunc")
     setSavingStatus("Saving")
     if (!Mentee) return
     if (!UserData) return
-    if (!Interaksi.Komitmen_Manager_Content) return
+
     const ExcelDat: ExcelData = {
       member: Mentee.username,
       manager: UserData.username,

@@ -12,7 +12,7 @@ import { getDocs } from '@/app/ListMentee/Server/GetMentees';
 export type SideBarRevProps = {
   aiResp: string | undefined
   SummaryCall?: () => void;
-  UpdateDocHistory: boolean
+  UpdateDocHistory: boolean | undefined
   User: User | undefined | null
   ChangeDocID?: (DocID: number | undefined) => void
   CurrentDocID?: number

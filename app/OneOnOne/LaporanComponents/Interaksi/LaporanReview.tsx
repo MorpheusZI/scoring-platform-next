@@ -25,7 +25,7 @@ import { useToast } from '@/components/ui/use-toast';
 type LaporanProps = {
   User: User | null;
   CallSummary: boolean;
-  CallSave: boolean;
+  CallSave: boolean | undefined;
   // SummaryFuncToSideBar: (aiResp: string | undefined) => void;
   SummaryFunc: (SummaryRez: SummaryReq) => void
   SaveFunc: (Interaksi: InteraksiContents, SummaryReq: SummaryReq) => void
@@ -35,6 +35,7 @@ type LaporanProps = {
 export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, SaveFunc, CurrentDocID }: LaporanProps) {
   const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
   const [Mentee, setMentee] = useState<User | null>()
+  const { toast } = useToast()
   useEffect(() => {
     const MenteeData = sessionStorage.getItem('MenteeData')
     const MenteeDat = MenteeData ? JSON.parse(MenteeData) : null
@@ -52,16 +53,16 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
         const doc = dac.find(doc => doc.managerContent === null)
         if (!doc) return
         PreInteraksiEditor?.commands.setContent(doc.memberHTML)
-        PreInteraksiEditor2?.commands.setContent(doc.memberHTML2)
-        PreInteraksiEditor3?.commands.setContent(doc.memberHTML3)
+        // PreInteraksiEditor2?.commands.setContent(doc.memberHTML2)
+        // PreInteraksiEditor3?.commands.setContent(doc.memberHTML3)
       })
       return
     }
     getDocByDocID(CurrentDocID).then((Doc) => {
       if (!Doc) return
       PreInteraksiEditor?.commands.setContent(Doc.memberHTML)
-      PreInteraksiEditor2?.commands.setContent(Doc.memberHTML2)
-      PreInteraksiEditor3?.commands.setContent(Doc.memberHTML3)
+      // PreInteraksiEditor2?.commands.setContent(Doc.memberHTML2)
+      // PreInteraksiEditor3?.commands.setContent(Doc.memberHTML3)
       KomitmenAtasanEditor?.commands.setContent(Doc.managerHTML)
       Catatan?.commands.setContent(Doc.Catatan)
     })
@@ -123,8 +124,8 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
     return editor
   }
   const PreInteraksiEditor = useEditor(editorOptions())
-  const PreInteraksiEditor2 = useEditor(editorOptions())
-  const PreInteraksiEditor3 = useEditor(editorOptions())
+  // const PreInteraksiEditor2 = useEditor(editorOptions())
+  // const PreInteraksiEditor3 = useEditor(editorOptions())
   const KomitmenAtasanEditor = useEditor(editorOptions())
   const Catatan = useEditor(editorOptions("catatan"))
 
@@ -154,6 +155,12 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
     if (!User) return
     if (!Mentee) return
     if (!KomitmenAtasanEditor?.getText() || KomitmenAtasanEditor.getText() === "") {
+      toast({
+        title: "Belum Lengkap!",
+        description: "Anda belum mengisi komitmen Atasan",
+        variant: "destructive",
+        duration: 3000
+      })
       return
     }
     const DataSummary: SummaryReq = {
@@ -188,20 +195,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
                   <h1 className="text-xl font-semibold">Aspirasi Member</h1>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className="flex flex-col gap-10 py-2">
-                    <div className="flex flex-col px-2">
-                      <h1>1. Ceritakan goals atau aspirasi karirmu di Talentlytica?</h1>
-                      <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor)} editor={PreInteraksiEditor} />
-                    </div>
-                    <div className="flex flex-col gap-2 px-2">
-                      <h1>2. Apa yang menjadi kendala goal tersebut belum dapat anda capai?</h1>
-                      <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor2)} editor={PreInteraksiEditor2} />
-                    </div>
-                    <div className="flex flex-col gap-2 px-2">
-                      <h1>3. Apa saja yang kamu butuhkan utk mencapai goals karir itu? dan apakah ada external support dari atasan atau Talentlytica dapat berikan?</h1>
-                      <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor3)} editor={PreInteraksiEditor3} />
-                    </div>
-                  </div>
+                  <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor)} editor={PreInteraksiEditor} />
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

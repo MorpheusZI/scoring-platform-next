@@ -56,6 +56,7 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
 
 
   function renderValues(values: NestedObject | undefined, key: string) {
+    console.log(values, key)
     if (values?.Komentar === "") {
       return <div key={key} className="flex gap-3 text-sm">
         <CircleX className="h-8 w-8 text-red-500" />

@@ -36,35 +36,36 @@ export interface AIResponse {
   Judul?: string;
 }
 
-function parseAIResponse(response: string, judul: string | undefined): AIResponse {
-  const mainKeys = ["Situasi", "Tugas", "Aksi", "Hasil"];
+function parseAIResponse(response: string, judul: string = ""): AIResponse {
+  const mainKeys: (keyof AIResponse)[] = ["Situasi", "Tugas", "Aksi", "Hasil"];
   const obj: AIResponse = {
     Situasi: { text: "", Kualitas: "", Komentar: "" },
     Tugas: { text: "", Kualitas: "", Komentar: "" },
     Aksi: { text: "", Kualitas: "", Komentar: "" },
     Hasil: { text: "", Kualitas: "", Komentar: "" },
-    Judul: judul ? judul : '',
+    Judul: judul,
   };
+  mainKeys.forEach((key, index) => {
+    const nextLimit = index === 3 ? "" : `.*? ${mainKeys[index + 1]}`;
+    const regexText = new RegExp(`${index + 1}.*?${key}.*?\\s*["']([^"']*)["']${nextLimit}`, "sgm");
+    const regexKualitas = new RegExp(`${index + 1}.*?${key}.*?Kualitas:\\s*([\\d%]+)${nextLimit}`, "sgm");
+    const regexKomentar = new RegExp(`${index + 1}.*?${key}.*?Komentar:\\s*["'](.*)["']${nextLimit}`, "sgm");
 
-  mainKeys.forEach((key) => {
-    const regex = new RegExp(
-      `${key}(?:\\s?:\\s?|[*]{0,2})["']([^"']*)["'].*?Persentasi Kualitas:\\s?([^%]+%)\\s?-*\\s?Komentar:\\s?["']([^"']+)["']`,
-      "im"
-    );
-    const match = response.match(regex);
-    if (match) {
-      //@ts-ignore
+    if (key !== "Judul") {
+      const matchText = regexText.exec(response);
+      const matchKualitas = regexKualitas.exec(response);
+      const matchKomentar = regexKomentar.exec(response);
       obj[key] = {
-        text: match[1] || "",
-        Kualitas: match[2],
-        Komentar: match[3],
+        text: matchText ? (matchText[1] || "").replace(/"/g, '') : "",
+        Kualitas: matchKualitas ? (matchKualitas[1] || "").replace(/"/g, '') : "",
+        Komentar: matchKomentar ? (matchKomentar[1] || "").replace(/"/g, '') : ""
       };
     }
   });
 
+  console.log(`\n\n ===== Ini Response Object untuk ${judul} =====\n\n`, obj, `\n\n -===- Ini Response Object untuk ${judul} =====\n\n`)
   return obj;
 }
-
 export async function vertexAISummarizer({ KomitmenAtasan, KomitmenBawahan, Catatan, NamaMentee, NamaManager }: SummaryReq) {
   const summarryReq: GenerateContentRequest = {
     contents: [{ role: "user", parts: [{ text: `data:{KomitmenManager: ${KomitmenAtasan},KomitmenKaryawan: ${KomitmenBawahan},Catatan: ${Catatan}, NamaAtasan: ${NamaManager},NamaKaryawan: ${NamaMentee}}. prompt = Dari hasil komitmen atasan, komitmen bawahan, dan catatan, buatkan summary hanya dalam 1 paragraf makismal 5 Kalimat. Notes: Catatan dimiliki oleh Atasan` }] }]
@@ -87,7 +88,7 @@ async function vertexAIStarChecker({ Judul, Isi }: KomitmenData) {
 
   const fulltextResponse = responseText.candidates[0].content.parts[0].text
   const cobaObj = fulltextResponse ? parseAIResponse(fulltextResponse, Judul) : null;
-
+  console.log(`\n\n ===== Ini AI Response untuk ${Judul} =====\n\n`, fulltextResponse, `\n\n -===- Ini AI Response untuk ${Judul} =====\n\n`)
   return cobaObj;
 }
 
