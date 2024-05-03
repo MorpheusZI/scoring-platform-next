@@ -54,7 +54,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   const [DisabledAI, setDisabledAI] = useState(false)
   const [prevEditorContentCheck, setprevEditorContentCheck] = useState<string | undefined>("")
   const [DocumentCheck, setDocumentCheck] = useState<Document | undefined>()
-  // const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
+  const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
   const [Loaded, setLoaded] = useState(false)
   const [Open, setOpen] = useState(false)
 
@@ -81,8 +81,8 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       const dac = doc[0]
       if (!dac) return
       aditor?.commands.setContent(dac.memberHTML)
-      // editor2?.commands.setContent(dac.memberHTML2)
-      // editor3?.commands.setContent(dac.memberHTML3)
+      editor2?.commands.setContent(dac.memberHTML2)
+      editor3?.commands.setContent(dac.memberHTML3)
       setDocumentCheck(dac)
       setLoaded(!Loaded)
     })
@@ -133,19 +133,19 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     const manag = Managers.find((man) => man.email === User.manager)
     if (DocumentCheck?.managerContent === "" || !DocumentCheck?.managerHTML || !DocumentCheck.managerContent) {
       if (!DocumentCheck?.DocID) {
-        const res = BikinDocument(ReturnObject,/*  editor2?.getHTML(), editor3?.getHTML(), */ User, manag).then(r => {
+        const res = BikinDocument(ReturnObject, editor2?.getHTML(), editor3?.getHTML(), User, manag).then(r => {
           handleSavingStatus("Saved")
           setDocumentCheck(r)
         })
         return
       }
-      const res = UpdatePreDocument(ReturnObject,/*  editor2?.getHTML(), editor3?.getHTML(), */ User.UserID, DocumentCheck?.DocID).then(r => {
+      const res = UpdatePreDocument(ReturnObject, editor2?.getHTML(), editor3?.getHTML(), User.UserID, DocumentCheck?.DocID).then(r => {
         handleSavingStatus("Saved")
         setDocumentCheck(r)
       })
       return
     } else {
-      const res = BikinDocument(ReturnObject,/*  editor2?.getHTML(), editor3?.getHTML(), */ User, manag).then(r => {
+      const res = BikinDocument(ReturnObject, editor2?.getHTML(), editor3?.getHTML(), User, manag).then(r => {
         handleSavingStatus("Saved")
         setDocumentCheck(r)
       })
@@ -183,13 +183,21 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
   function handleAIassist() {
     if (!handleKomitmenDatatoAI) return
-    if (dataList?.length === 0) return
+    if (dataList?.length === 0) {
+      toast({
+        title: "Belum lengkap!",
+        description: "Anda Belum menulis komitmen",
+        variant: "destructive",
+        duration: 2000,
+      })
+      return
+    }
     if (dataList && dataList?.filter((m) => m.Isi === undefined || m.Isi === "" || m.Isi === null).length > 0) {
       toast({
         title: "Belum lengkap!",
         description: "Ada beberapa komitmen yang belum di deskripsikan",
         variant: "destructive",
-        duration: 1000,
+        duration: 2000,
       })
       return
     }
@@ -380,8 +388,8 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       }
     },
   })
-  // const editor2 = useEditor(Editoropts)
-  // const editor3 = useEditor(Editoropts)
+  const editor2 = useEditor(Editoropts)
+  const editor3 = useEditor(Editoropts)
 
   const $Isi = aditor?.$nodes('paragraph')
   const $OLItem = aditor?.$nodes('orderedList')
@@ -447,7 +455,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
             </div>
           </div>
           <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
-            <h1>Ceritakan bagaimana progress KPI kamu hingga saat ini?</h1>
+            <h1>Ceritakan goals atau aspirasi karirmu di Talentlytica?</h1>
             <EditorContent editor={aditor} />
             <div className="flex gap-4 self-end">
               <Button
@@ -458,6 +466,14 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
                 <p>Cek Kualitas Deskripsi</p>
               </Button>
             </div>
+          </div>
+          <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
+            <h1>Apa yang menjadi kendala goal tersebut belum dapat anda capai?</h1>
+            <EditorContent onFocus={() => setActiveEditor(editor2)} editor={editor2} />
+          </div>
+          <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
+            <h1>Apa saja yang kamu butuhkan utk mencapai goals karir itu? dan apakah ada external support dari atasan atau Talentlytica dapat berikan?</h1>
+            <EditorContent onFocus={() => setActiveEditor(editor3)} editor={editor3} />
           </div>
         </div>
       </div>
