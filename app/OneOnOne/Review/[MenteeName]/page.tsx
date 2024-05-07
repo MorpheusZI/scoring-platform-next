@@ -36,11 +36,7 @@ export default function Home() {
     switch (SavingStatus) {
       case "nill":
         return <Button onClick={() => {
-          setSaveCall(paveCall => {
-            console.log(paveCall, "A", !paveCall, "B", SaveCall)
-            console.log("Anjay", SaveCall)
-            return !paveCall
-          })
+          setSaveCall(paveCall => !paveCall)
         }}>Simpan</Button>
         break;
       case "Saving":
@@ -63,7 +59,7 @@ export default function Home() {
       default:
         return <Button onClick={() => {
           console.log(SaveCall)
-          setSaveCall(!SaveCall)
+          setSaveCall(paveCall => !paveCall)
         }}>Simpan</Button>
         break;
     }
