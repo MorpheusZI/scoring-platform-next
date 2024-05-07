@@ -115,17 +115,19 @@ export default function ListMentee() {
       return FilteredUsers?.map((Uzer, index) => (
         <div key={index} className="grid items-center w-full grid-cols-3 py-2 px-5 gap-1 border-2 border-black">
           <p className="col-span-2">{Uzer.username}</p>
-          <Button className="w-fit" onClick={() => handleMulaiInteraksi(Uzer)}>Mulai Interaksi</Button>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                {!Uzer.ready && <X />}
-              </TooltipTrigger>
-              <TooltipContent>
-                {!Uzer.ready && <p>Member ini belum mengisi Pre-Interaksi</p>}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <div className="flex gap-5">
+            <Button className="w-fit" onClick={() => handleMulaiInteraksi(Uzer)}>Mulai Interaksi</Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  {!Uzer.ready && <X />}
+                </TooltipTrigger>
+                <TooltipContent>
+                  {!Uzer.ready && <p>Member ini belum mengisi Pre-Interaksi</p>}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
       ))
     } else {
