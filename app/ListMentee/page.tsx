@@ -4,11 +4,12 @@ import { redirect, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { getADocs, getAllUsers, getDocs, getMentees } from "./Server/GetMentees"
 import { Prisma, User } from "@prisma/client"
-import { ChevronDown, CircleUserRound, Ellipsis, Loader2, LogOut, Search, UserRoundX, UsersRound, X } from "lucide-react"
+import { Check, ChevronDown, CircleUserRound, Ellipsis, Loader2, LogOut, Search, UserRoundX, UsersRound, X } from "lucide-react"
 import Link from "next/link"
 import { Select, SelectGroup, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { PopoverClose } from "@radix-ui/react-popover"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface Mentee extends User {
   ready?: boolean
@@ -114,14 +115,34 @@ export default function ListMentee() {
       return FilteredUsers?.map((Uzer, index) => (
         <div key={index} className="grid items-center w-full grid-cols-3 py-2 px-5 gap-1 border-2 border-black">
           <p className="col-span-2">{Uzer.username}</p>
-          <Button className="w-fit" onClick={() => handleMulaiInteraksi(Uzer)} disabled={!Uzer.ready}>Mulai Interaksi</Button>
+          <Button className="w-fit" onClick={() => handleMulaiInteraksi(Uzer)}>Mulai Interaksi</Button>
+          <Tooltip>
+            <TooltipTrigger>
+              {Uzer.ready ? <Check /> : <X />}
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Ni orang asu</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       ))
     } else {
       return FilteredUsers.map((Mentee, index) => {
         return <div key={index} className="grid items-center w-full grid-cols-3 py-2 px-5 gap-1 border-2 border-black">
           <p className="col-span-2">{Mentee.username}</p>
-          <Button className="w-fit" onClick={() => handleMulaiInteraksi(Mentee)} disabled={!Mentee.ready}>Mulai Interaksi</Button>
+          <div className="flex gap-5">
+            <Button className="w-fit" onClick={() => handleMulaiInteraksi(Mentee)}>Mulai Interaksi</Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  {!Mentee.ready && <X />}
+                </TooltipTrigger>
+                <TooltipContent>
+                  {!Mentee.ready && <p>Member ini belum mengisi Pre-Interaksi</p>}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
       })
     }
