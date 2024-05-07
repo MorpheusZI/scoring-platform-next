@@ -58,7 +58,6 @@ export default function Home() {
         </div>
       default:
         return <Button onClick={() => {
-          console.log(SaveCall)
           setSaveCall(paveCall => !paveCall)
         }}>Simpan</Button>
         break;
@@ -81,7 +80,6 @@ export default function Home() {
   }
 
   function handleSavenSummary(Interaksi: InteraksiContents, SummaryReq: SummaryReq) {
-    console.log("CalledFunc")
     setSavingStatus("Saving")
     if (!Mentee) return
     if (!UserData) return

@@ -26,6 +26,14 @@ export async function getDocs(MenteeID: number, ManID: number) {
   })
   return docs
 }
+export async function getADocs(MenteeID: number) {
+  const docz = await prisma.document.findMany({
+    where: {
+      memberID: MenteeID
+    }
+  })
+  return docz
+}
 export async function getDocByDocID(DocID: number) {
   const doc = await prisma.document.findUnique({
     where: {

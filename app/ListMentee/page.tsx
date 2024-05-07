@@ -2,12 +2,13 @@
 import { Button } from "@/components/ui/button"
 import { redirect, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
-import { getAllUsers, getDocs, getMentees } from "./Server/GetMentees"
+import { getADocs, getAllUsers, getDocs, getMentees } from "./Server/GetMentees"
 import { Prisma, User } from "@prisma/client"
 import { ChevronDown, CircleUserRound, Ellipsis, Loader2, LogOut, Search, UserRoundX, UsersRound, X } from "lucide-react"
 import Link from "next/link"
 import { Select, SelectGroup, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { PopoverClose } from "@radix-ui/react-popover"
 
 interface Mentee extends User {
   ready?: boolean
@@ -17,7 +18,6 @@ export default function ListMentee() {
   const [UserData, setUserData] = useState<User | null>(null)
   const [MenteeLists, setMenteeLists] = useState<User[] | undefined>([])
   const [NewMenteeLists, setNewMenteeLists] = useState<Mentee[] | undefined>([])
-  const [AllUsers, setAllUsers] = useState<User[] | undefined>()
   const [SearchTerm, setSearchTerm] = useState("")
   const [LoadingList, setLoadingList] = useState(true)
   const router = useRouter()
@@ -40,61 +40,92 @@ export default function ListMentee() {
     }
     //@ts-ignore
   }, [])
+  function makeNewMentee(Mentees: User[] | undefined) {
+    if (!UserData) return
+    if (!Mentees) return
+    const newmenteez = Mentees.map((mentee) => {
+      if (UserData.email === "super@hr.com") {
+        const Dox = getADocs(mentee.UserID).then((docs) => {
+          const sortedDocs = docs.sort((a, b) => b.DocID - a.DocID)
+          const doc = sortedDocs[0]
+          let Ready = false
+          if (!doc) {
+            const newMentee: Mentee = { ...mentee, ready: Ready }
+            return newMentee
+          }
+          if (!doc.managerHTML || doc.managerContent === null || doc.managerContent === "") {
+            Ready = true
+          }
+          const newMentee: Mentee = { ...mentee, ready: Ready }
+          return newMentee
+        })
+        return Dox
+      } else {
+        const Doc = getDocs(mentee.UserID, UserData?.UserID).then((docs) => {
+          const sortedDocs = docs.sort((a, b) => b.DocID - a.DocID)
+          const doc = sortedDocs[0]
+          let Ready = false
+          if (!doc) {
+            const newMentee: Mentee = { ...mentee, ready: Ready }
+            return newMentee
+          }
+          if (!doc.managerHTML || doc.managerContent === null || doc.managerContent === "") {
+            Ready = true
+          }
+          const newMentee: Mentee = { ...mentee, ready: Ready }
+          return newMentee
+        })
+        return Doc
+      }
+    })
 
+    Promise.all(newmenteez).then((Mentees) => {
+      setNewMenteeLists(Mentees)
+    }).finally(() => {
+      setLoadingList(true)
+    })
+  }
   useEffect(() => {
     if (!UserData) return
     if (UserData.email === "super@hr.com") {
-      console.log("lah")
       setLoadingList(false)
       getAllUsers().then((Uzers) => {
-        setLoadingList(true)
-        setAllUsers(Uzers)
-        console.log(AllUsers)
+        setMenteeLists(Uzers)
+        makeNewMentee(Uzers)
       })
     } else {
-      console.log("goblog")
       setLoadingList(false)
       getMentees(UserData.email).then((R) => {
         setMenteeLists(R)
-        console.log(R, "hello")
-        setLoadingList(true)
+        makeNewMentee(R)
       })
-
     }
     //@ts-ignore
   }, [UserData])
-  useEffect(() => {
-    console.log(MenteeLists)
 
-    return
-  }, [MenteeLists])
 
   const renderComp = useMemo(() => {
     if (!UserData) return
-    if (!MenteeLists) return
+    if (!NewMenteeLists) return
+    const FilteredUsers = NewMenteeLists?.filter((User) =>
+      User.email !== "super@hr.com" &&
+      User.username.toLowerCase().includes(SearchTerm.toLowerCase()))
     if (UserData.email === "super@hr.com") {
-      console.log(UserData.email)
-      const FilteredUsers = AllUsers?.filter((User) =>
-        User.email !== "super@hr.com" &&
-        User.username.toLowerCase().includes(SearchTerm.toLowerCase()))
       return FilteredUsers?.map((Uzer, index) => (
         <div key={index} className="grid items-center w-full grid-cols-3 py-2 px-5 gap-1 border-2 border-black">
           <p className="col-span-2">{Uzer.username}</p>
-          <Button className="w-fit" onClick={() => handleMulaiInteraksi(Uzer)}>Mulai Interaksi</Button>
+          <Button className="w-fit" onClick={() => handleMulaiInteraksi(Uzer)} disabled={!Uzer.ready}>Mulai Interaksi</Button>
         </div>
       ))
     } else {
-      console.log("hello")
-      const FilteredMentees = MenteeLists?.filter((Mentee) =>
-        Mentee.username.toLowerCase().includes(SearchTerm.toLowerCase()))
-      return FilteredMentees.map((Mentee, index) => {
+      return FilteredUsers.map((Mentee, index) => {
         return <div key={index} className="grid items-center w-full grid-cols-3 py-2 px-5 gap-1 border-2 border-black">
           <p className="col-span-2">{Mentee.username}</p>
-          <Button className="w-fit" onClick={() => handleMulaiInteraksi(Mentee)}>Mulai Interaksi</Button>
+          <Button className="w-fit" onClick={() => handleMulaiInteraksi(Mentee)} disabled={!Mentee.ready}>Mulai Interaksi</Button>
         </div>
       })
     }
-  }, [SearchTerm, UserData, MenteeLists, AllUsers])
+  }, [SearchTerm, UserData, NewMenteeLists])
 
   return (
     <div className="flex flex-col">
@@ -146,9 +177,11 @@ export default function ListMentee() {
                 </PopoverTrigger>
                 <PopoverContent side="right">
                   <div className="flex items-center gap-3 px-1">
-                    <X className="text-red-500 hover:cursor-pointer" onClick={() => {
-                      setSearchTerm("")
-                    }} />
+                    <PopoverClose>
+                      <X className="text-red-500 hover:cursor-pointer" onClick={() => {
+                        setSearchTerm("")
+                      }} />
+                    </PopoverClose>
                     <input onChange={(e) => {
                       setSearchTerm(e.target.value)
                     }} value={SearchTerm} className="p-2 pl-0 outline-none" placeholder="Cari Anggota..." />
@@ -159,7 +192,10 @@ export default function ListMentee() {
             <p className="col-span-1">Action</p>
           </div>
           <div className="max-h-[70vh] overflow-y-auto border-b-2 border-b-black rounded-b-lg" >
-            {renderComp}
+            {LoadingList ? renderComp : <div className="flex w-full text-2xl h-[60vh] items-center justify-center gap-2">
+              <Loader2 className="h-10 w-10 animate-spin" />
+              <p>Loading</p>
+            </div>}
           </div>
         </div>
       </div>

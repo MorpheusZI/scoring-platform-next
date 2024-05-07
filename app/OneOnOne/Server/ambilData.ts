@@ -63,7 +63,6 @@ function parseAIResponse(response: string, judul: string = ""): AIResponse {
     }
   });
 
-  console.log(`\n\n ===== Ini Response Object untuk ${judul} =====\n\n`, obj, `\n\n -===- Ini Response Object untuk ${judul} =====\n\n`)
   return obj;
 }
 export async function vertexAISummarizer({ KomitmenAtasan, KomitmenBawahan, Catatan, NamaMentee, NamaManager }: SummaryReq) {
@@ -88,7 +87,6 @@ async function vertexAIStarChecker({ Judul, Isi }: KomitmenData) {
 
   const fulltextResponse = responseText.candidates[0].content.parts[0].text
   const cobaObj = fulltextResponse ? parseAIResponse(fulltextResponse, Judul) : null;
-  console.log(`\n\n ===== Ini AI Response untuk ${Judul} =====\n\n`, fulltextResponse, `\n\n -===- Ini AI Response untuk ${Judul} =====\n\n`)
   return cobaObj;
 }
 
