@@ -84,8 +84,33 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       // editor2?.commands.setContent(dac.memberHTML2)
       // editor3?.commands.setContent(dac.memberHTML3)
       setDocumentCheck(dac)
+      console.log(dac)
     }).finally(() => {
-      setLoaded(!Loaded)
+      if (!aditor?.getHTML()) return
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(aditor?.getHTML(), 'text/html');
+      const taskListItems = doc.querySelectorAll('ul[data-type="taskList"]');
+      let filteredContent = '';
+      let skipContent = false;
+
+      taskListItems.forEach((item, index) => {
+        const isChecked = item.querySelector('li[data-checked="true"]');
+        if (isChecked) {
+          skipContent = true
+        } else {
+          skipContent = false
+          filteredContent += item.outerHTML
+        }
+        console.log(skipContent, index)
+        let nextSibling = item.nextElementSibling;
+        while (nextSibling && nextSibling.getAttribute('data-type') !== "taskList") {
+          if (!skipContent) {
+            filteredContent += nextSibling?.outerHTML
+          }
+          nextSibling = nextSibling.nextElementSibling
+        }
+      });
+      aditor.commands.setContent(filteredContent)
     })
     //@ts-ignore
   }, [User, Managers])
@@ -354,34 +379,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   // const editor2 = useEditor(Editoropts)
   // const editor3 = useEditor(Editoropts)
 
-  const parseRcontent = useMemo(() => {
-    console.log("Run", Loaded)
-    if (!aditor?.getHTML()) return
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(aditor?.getHTML(), 'text/html');
-    const taskListItems = doc.querySelectorAll('ul[data-type="taskList"]');
-    let filteredContent = '';
-    let skipContent = false;
 
-    taskListItems.forEach((item, index) => {
-      const isChecked = item.querySelector('li[data-checked="true"]');
-      if (isChecked) {
-        skipContent = true
-      } else {
-        skipContent = false
-        filteredContent += item.outerHTML
-      }
-      let nextSibling = item.nextElementSibling;
-      while (nextSibling && !nextSibling.hasAttribute('data-type="taskList"')) {
-        if (!skipContent) {
-          filteredContent += nextSibling.outerHTML;
-        }
-        nextSibling = nextSibling.nextElementSibling;
-      }
-    });
-    aditor.commands.setContent(filteredContent)
-    return filteredContent;
-  }, [Loaded])
   const $Isi = aditor?.$nodes('paragraph')
   const $OLItem = aditor?.$nodes('orderedList')
   const $BulletListItem = aditor?.$nodes('bulletList')
