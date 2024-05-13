@@ -41,9 +41,8 @@ export async function WriteToExcel(ExcelData: ExcelData) {
   const filteredRows = rows.filter((row, indx) => row.get('user') === ExcelData.user && row.get('manager') === ExcelData.manager).map((row) => row.toObject())
   const LastRow = filteredRows[filteredRows.length - 1]
   if (LastRow) {
-    if (!LastRow.Jumlah_Semua_Session) return
-    if (!LastRow.Jumlah_Komitmen) return
-    const All_Session = parseInt(LastRow.Jumlah_Semua_Session.toString()) + parseInt(ExcelData.Jumlah_Komitmen.toString())
+    const Jumlah_Semua_Session = LastRow.Jumlah_Semua_Session ? LastRow.Jumlah_Semua_Session : ExcelData.Jumlah_Komitmen
+    const All_Session = parseInt(Jumlah_Semua_Session.toString()) + parseInt(ExcelData.Jumlah_Komitmen.toString())
     const addedRow = await sheet.addRow({
       user: ExcelData.user || "",
       manager: ExcelData.manager || "",
