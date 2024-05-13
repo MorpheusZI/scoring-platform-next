@@ -17,6 +17,24 @@ export type SideBarRevProps = {
   ChangeDocID?: (DocID: number | undefined) => void
   CurrentDocID?: number
 }
+type returnCountKomitmen = { total: number, done: number }
+
+export function CountKomitmen(Komitmen: string | null): returnCountKomitmen {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(Komitmen || "", 'text/html')
+  const taskListItems = doc.querySelectorAll('ul[data-type="taskList"]');
+  let els: (Element)[] = [];
+  const CheckedTaskLists = taskListItems.forEach((item, index) => {
+    const CheckedItem = item.querySelector('li[data-checked="true"]')
+    if (CheckedItem || CheckedItem !== null) {
+      els.push(CheckedItem)
+    }
+  })
+  return {
+    total: taskListItems.length || 0,
+    done: els.length || 0
+  }
+}
 
 export default function Sidebar({ CurrentDocID, aiResp, SummaryCall, User, UpdateDocHistory, ChangeDocID }: SideBarRevProps) {
   const [PickedTopics, setPickedTopics] = useState<Array<string>>([])
@@ -65,11 +83,6 @@ export default function Sidebar({ CurrentDocID, aiResp, SummaryCall, User, Updat
     )
   })
 
-  function CountKomitmen(Komitmen: string | null) {
-    const regex = new RegExp("<ul[^>]*>", "g")
-    const matches = Komitmen?.match(regex)
-    return matches ? matches?.length : "0"
-  }
   function handleDocIDchange(docId: number, CurrentDocID: number | undefined) {
     if (!ChangeDocID) return
     ChangeDocID(docId)
@@ -81,6 +94,7 @@ export default function Sidebar({ CurrentDocID, aiResp, SummaryCall, User, Updat
   const renderHistory = useMemo(() => {
     const bruh = HistoricalDocs?.map((doc, index) => {
       if (!doc.Summary && !doc.managerContent && !doc.Catatan) return
+      const { total } = CountKomitmen(doc.memberHTML)
       const CurrentDocClass = CurrentDocID === doc.DocID ? "border-2 border-purple-500 shadow-lg shadow-purple-300" : ""
       return <div key={index} onClick={() => handleDocIDchange(doc.DocID, CurrentDocID)} className={`flex w-full flex-col gap-3 p-4 bg-white border-2 border-black rounded ${CurrentDocClass} hover:border-purple-500 hover:cursor-pointer`}>
         <div className="flex gap-2 text-sm items-center">
@@ -89,7 +103,7 @@ export default function Sidebar({ CurrentDocID, aiResp, SummaryCall, User, Updat
         </div>
         <p>{doc.Summary?.substring(0, 100) + "..."}</p>
         <div className="flex text-sm gap-2 items-center">
-          <p className="px-3 py-[1.5px] rounded-xl border-2 border-gray-500">{CountKomitmen(doc.memberHTML)}</p>
+          <p className="px-3 py-[1.5px] rounded-xl border-2 border-gray-500">{total}</p>
           <p>Total Komitmen</p>
         </div>
       </div>

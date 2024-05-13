@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useMemo } from 'react'
-import Sidebar from '../../LaporanComponents/Interaksi/SideBarReview'
+import Sidebar, { CountKomitmen } from '../../LaporanComponents/Interaksi/SideBarReview'
 import Laporan from '../../LaporanComponents/Interaksi/LaporanReview'
 import { redirect } from 'next/navigation'
 import { User } from '@prisma/client'
@@ -12,7 +12,9 @@ import { BikinInterDocument, InteraksiContents, UpdateInterDocument } from '../.
 import { getDocByDocID, getDocs } from '@/app/ListMentee/Server/GetMentees'
 import { ExcelData, WriteToExcel } from '../../Server/Gsheet'
 import { Check, Loader, Save } from 'lucide-react'
+
 type savingStatus = "nill" | "Saving" | "Saved"
+
 export default function Home() {
   const [UserData, setUserData] = useState<User | null>()
   const [DocID, setDocID] = useState<number | undefined>()
@@ -30,8 +32,8 @@ export default function Home() {
     const MenteeDat = MenteeData ? JSON.parse(MenteeData) : null
     setMentee(MenteeDat)
     // @ts-ignore
-  }, []
-  )
+  }, [])
+
   const renderSave = useMemo(() => {
     switch (SavingStatus) {
       case "nill":
@@ -62,8 +64,9 @@ export default function Home() {
         }}>Simpan</Button>
         break;
     }
-    //ts-ignore
+    //@ts-ignore
   }, [SavingStatus])
+
   const setSummaryTextOnDocIDChange = useMemo(() => {
     if (!DocID) {
       setSummaryText(undefined)
@@ -83,12 +86,14 @@ export default function Home() {
     setSavingStatus("Saving")
     if (!Mentee) return
     if (!UserData) return
-
+    const { total, done } = CountKomitmen(Interaksi.Komitmen_Member_HTML || "")
     const ExcelDat: ExcelData = {
-      member: Mentee.username,
+      user: Mentee.username,
       manager: UserData.username,
       komitmen_atasan: Interaksi.Komitmen_Manager_Content,
       komitmen_member: Interaksi.Komitmen_Member_Content,
+      Jumlah_Komitmen: total,
+      Jumlah_Komitmen_Selesai: done,
     }
 
     if (!SummaryText) {
@@ -101,13 +106,13 @@ export default function Home() {
           if (!doc[doc.length - 1].managerContent || doc[doc.length - 1].managerContent === null) {
             const dac = doc[doc.length - 1]
             UpdateInterDocument(newInteraksi, UserData, Mentee, dac.DocID).then(() => {
-              WriteToExcel(newExcData).then(() => setSavingStatus("Saved"))
+              WriteToExcel(newExcData).finally(() => setSavingStatus("Saved"))
             })
           } else {
+            WriteToExcel(newExcData).finally(() => setSavingStatus("Saved"))
             BikinInterDocument(newInteraksi, UserData, Mentee).then(() => {
-              WriteToExcel(newExcData).then(() => setSavingStatus("Saved"))
-            }
-            )
+              WriteToExcel(newExcData).finally(() => setSavingStatus("Saved"))
+            })
           }
         })
       })
@@ -119,11 +124,11 @@ export default function Home() {
         if (!doc[doc.length - 1].managerContent || doc[doc.length - 1].managerContent === null) {
           const dac = doc[doc.length - 1]
           UpdateInterDocument(newInteraksi, UserData, Mentee, dac.DocID).then(() => {
-            WriteToExcel(newExcData).then(() => setSavingStatus("Saved"))
+            WriteToExcel(newExcData).finally(() => setSavingStatus("Saved"))
           })
         } else {
           BikinInterDocument(newInteraksi, UserData, Mentee).then(() => {
-            WriteToExcel(newExcData).then(() => setSavingStatus("Saved"))
+            WriteToExcel(newExcData).finally(() => setSavingStatus("Saved"))
           })
         }
       })

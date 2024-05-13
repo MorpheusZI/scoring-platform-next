@@ -84,7 +84,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       // editor2?.commands.setContent(dac.memberHTML2)
       // editor3?.commands.setContent(dac.memberHTML3)
       setDocumentCheck(dac)
-      console.log(dac)
     }).finally(() => {
       if (!aditor?.getHTML()) return
       const parser = new DOMParser();
@@ -101,7 +100,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
           skipContent = false
           filteredContent += item.outerHTML
         }
-        console.log(skipContent, index)
         let nextSibling = item.nextElementSibling;
         while (nextSibling && nextSibling.getAttribute('data-type') !== "taskList") {
           if (!skipContent) {
@@ -292,44 +290,44 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     },
   })
 
-  const Editoropts: Partial<EditorOptions> | undefined = {
-    extensions: [
-      StarterKit.configure({
-        blockquote: {
-          HTMLAttributes: {
-            class: "pl-5 px-3 border-l-2 border-gray-400"
-          },
-        },
-        bulletList: {
-          HTMLAttributes: {
-            class: "mx-6 px-2 list-disc list-outside "
-          }
-        }, orderedList: {
-          HTMLAttributes: {
-            class: "mx-7 list-decimal list-outside "
-          }
-        },
-
-      }),
-      Underline,
-      customTaskList,
-      TaskItem,
-      Placeholder.configure({
-        showOnlyCurrent: false,
-        placeholder: ({ editor, node }) => {
-          if (node.type.name === "taskList") {
-            return "CTRL + K Lagi untuk mendeskripsikan"
-          }
-          return "(Ctrl + K) untuk menjelaskan situasi secara singkat, lalu (Enter) dan (Tab) untuk menjelaskan tugas, aksi, dan hasil."
-        },
-      }),
-    ],
-    editorProps: {
-      attributes: {
-        class: "w-full px-3 py-4 text-black outline-none"
-      }
-    },
-  }
+  // const Editoropts: Partial<EditorOptions> | undefined = {
+  //   extensions: [
+  //     StarterKit.configure({
+  //       blockquote: {
+  //         HTMLAttributes: {
+  //           class: "pl-5 px-3 border-l-2 border-gray-400"
+  //         },
+  //       },
+  //       bulletList: {
+  //         HTMLAttributes: {
+  //           class: "mx-6 px-2 list-disc list-outside "
+  //         }
+  //       }, orderedList: {
+  //         HTMLAttributes: {
+  //           class: "mx-7 list-decimal list-outside "
+  //         }
+  //       },
+  //
+  //     }),
+  //     Underline,
+  //     customTaskList,
+  //     TaskItem,
+  //     Placeholder.configure({
+  //       showOnlyCurrent: false,
+  //       placeholder: ({ editor, node }) => {
+  //         if (node.type.name === "taskList") {
+  //           return "CTRL + K Lagi untuk mendeskripsikan"
+  //         }
+  //         return "(Ctrl + K) untuk menjelaskan situasi secara singkat, lalu (Enter) dan (Tab) untuk menjelaskan tugas, aksi, dan hasil."
+  //       },
+  //     }),
+  //   ],
+  //   editorProps: {
+  //     attributes: {
+  //       class: "w-full px-3 py-4 text-black outline-none"
+  //     }
+  //   },
+  // }
 
   const aditor = useEditor({
     onUpdate: ({ editor }) => {
