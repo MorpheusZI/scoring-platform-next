@@ -290,45 +290,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     },
   })
 
-  // const Editoropts: Partial<EditorOptions> | undefined = {
-  //   extensions: [
-  //     StarterKit.configure({
-  //       blockquote: {
-  //         HTMLAttributes: {
-  //           class: "pl-5 px-3 border-l-2 border-gray-400"
-  //         },
-  //       },
-  //       bulletList: {
-  //         HTMLAttributes: {
-  //           class: "mx-6 px-2 list-disc list-outside "
-  //         }
-  //       }, orderedList: {
-  //         HTMLAttributes: {
-  //           class: "mx-7 list-decimal list-outside "
-  //         }
-  //       },
-  //
-  //     }),
-  //     Underline,
-  //     customTaskList,
-  //     TaskItem,
-  //     Placeholder.configure({
-  //       showOnlyCurrent: false,
-  //       placeholder: ({ editor, node }) => {
-  //         if (node.type.name === "taskList") {
-  //           return "CTRL + K Lagi untuk mendeskripsikan"
-  //         }
-  //         return "(Ctrl + K) untuk menjelaskan situasi secara singkat, lalu (Enter) dan (Tab) untuk menjelaskan tugas, aksi, dan hasil."
-  //       },
-  //     }),
-  //   ],
-  //   editorProps: {
-  //     attributes: {
-  //       class: "w-full px-3 py-4 text-black outline-none"
-  //     }
-  //   },
-  // }
-
   const aditor = useEditor({
     onUpdate: ({ editor }) => {
       if (prevEditorContentCheck === aditor?.getText()) {
@@ -355,17 +316,17 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
         },
 
       }),
-      Underline,
       customTaskList,
       TaskItem,
       Placeholder.configure({
-        showOnlyCurrent: false,
         placeholder: ({ editor, node }) => {
           if (editor?.can().splitListItem('taskList')) {
             return "CTRL + K Lagi untuk mendeskripsikan"
           }
           return "(Ctrl + K) untuk menjelaskan situasi secara singkat, lalu (Enter) dan (Tab) untuk menjelaskan tugas, aksi, dan hasil."
         },
+        considerAnyAsEmpty: true,
+        includeChildren: true,
       }),
     ],
     editorProps: {

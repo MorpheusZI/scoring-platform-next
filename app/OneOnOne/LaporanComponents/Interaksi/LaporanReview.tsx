@@ -112,8 +112,6 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
             }
             return "(Ctrl + K) untuk menjelaskan situasi secara singkat, lalu (Enter) dan (Tab) untuk menjelaskan tugas, aksi, dan hasil."
           },
-          emptyEditorClass: "first:before:h-0 first:before:text-gray-400 first:before:content-[attr(data-placeholder)] first:before:float-left",
-          showOnlyCurrent: false,
         }),
       ],
       editorProps: {
