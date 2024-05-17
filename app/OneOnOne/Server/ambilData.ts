@@ -73,7 +73,6 @@ export async function vertexAISummarizer({ KomitmenAtasan, KomitmenBawahan, Cata
 async function vertexAIStarChecker({ Judul, Isi }: KomitmenData) {
   const generationConfig = {
     temperature: 1,
-    maxOutputTokens: 8192,
   };
 
   const safetySettings = [
