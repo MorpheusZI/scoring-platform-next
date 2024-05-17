@@ -42,11 +42,9 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
   }, [AIRes])
 
   function CheckPercentage(percent: string | undefined) {
-    if (!percent) return
-    const numberz = parseInt(percent.replace("%", ""))
-    if (numberz === 0) {
+    if (percent === "Tidak Ada") {
       return <p><CircleX className="text-red-400" /></p>
-    } else if (numberz === 100) {
+    } else if (percent === "Lengkap") {
       return <p ><CheckCircleIcon className="text-green-400" /></p>
     } else {
       return <p className="py-1"><Lightbulb className=" text-yellow-300" /></p>

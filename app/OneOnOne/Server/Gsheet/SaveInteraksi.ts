@@ -69,4 +69,3 @@ export async function WriteToExcel(ExcelData: ExcelData) {
   }
 
 }
-

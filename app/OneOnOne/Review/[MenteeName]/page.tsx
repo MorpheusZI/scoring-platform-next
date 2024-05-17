@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { SummaryReq, vertexAISummarizer } from '../../Server/ambilData'
 import { BikinInterDocument, InteraksiContents, UpdateInterDocument } from '../../Server/BikinDocument'
 import { getDocByDocID, getDocs } from '@/app/ListMentee/Server/GetMentees'
-import { ExcelData, WriteToExcel } from '../../Server/Gsheet'
+import { ExcelData, WriteToExcel } from '../../Server/Gsheet/SaveInteraksi'
 import { Check, Loader, Save } from 'lucide-react'
 
 type savingStatus = "nill" | "Saving" | "Saved"

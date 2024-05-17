@@ -17,10 +17,11 @@ import { Document, User } from '@prisma/client';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { AmbilPreDocument, BikinDocument, BikinInterDocument, InteraksiContents, UpdateInterDocument } from '../../Server/BikinDocument';
 import { SummaryReq, getManagers, vertexAISummarizer } from '../../Server/ambilData';
-import { ExcelData, WriteToExcel } from '../../Server/Gsheet';
+import { ExcelData, WriteToExcel } from '../../Server/Gsheet/SaveInteraksi';
 import { getDocByDocID, getDocs } from '@/app/ListMentee/Server/GetMentees';
 import { preinit } from 'react-dom';
 import { useToast } from '@/components/ui/use-toast';
+import { GetKPI } from '../../Server/Gsheet/GetKPI';
 
 type LaporanProps = {
   User: User | null;
@@ -36,15 +37,18 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
   const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
   const [Mentee, setMentee] = useState<User | null>()
   const { toast } = useToast()
+
   useEffect(() => {
     const MenteeData = sessionStorage.getItem('MenteeData')
     const MenteeDat = MenteeData ? JSON.parse(MenteeData) : null
     setMentee(MenteeDat)
     // @ts-ignore
   }, [])
+
   useEffect(() => {
     if (!User) return
     if (!Mentee) return
+    GetKPI(Mentee.username)
     if (!CurrentDocID || CurrentDocID === null || CurrentDocID == undefined) {
       PreInteraksiEditor?.commands.setContent("")
       KomitmenAtasanEditor?.commands.setContent("")
@@ -54,16 +58,12 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
         const doc = dac.find(doc => doc.managerContent === null)
         if (!doc) return
         PreInteraksiEditor?.commands.setContent(doc.memberHTML)
-        // PreInteraksiEditor2?.commands.setContent(doc.memberHTML2)
-        // PreInteraksiEditor3?.commands.setContent(doc.memberHTML3)
       })
       return
     }
     getDocByDocID(CurrentDocID).then((Doc) => {
       if (!Doc) return
       PreInteraksiEditor?.commands.setContent(Doc.memberHTML)
-      // PreInteraksiEditor2?.commands.setContent(Doc.memberHTML2)
-      // PreInteraksiEditor3?.commands.setContent(Doc.memberHTML3)
       KomitmenAtasanEditor?.commands.setContent(Doc.managerHTML)
       Catatan?.commands.setContent(Doc.Catatan)
     })
@@ -123,8 +123,6 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
     return editor
   }
   const PreInteraksiEditor = useEditor(editorOptions())
-  // const PreInteraksiEditor2 = useEditor(editorOptions())
-  // const PreInteraksiEditor3 = useEditor(editorOptions())
   const KomitmenAtasanEditor = useEditor(editorOptions())
   const Catatan = useEditor(editorOptions("catatan"))
 
@@ -195,23 +193,6 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
                 </AccordionTrigger>
                 <AccordionContent>
                   <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor)} editor={PreInteraksiEditor} />
-                  {/*
-                  <div className="flex flex-col gap-10 py-2">
-                    <div className="flex flex-col px-2">
-                      <h1>1. Ceritakan goals atau aspirasi karirmu di Talentlytica?</h1>
-                      <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor)} editor={PreInteraksiEditor} />
-                    </div>
-                    <div className="flex flex-col gap-2 px-2">
-                      <h1>2. Apa yang menjadi kendala goal tersebut belum dapat anda capai?</h1>
-                      <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor2)} editor={PreInteraksiEditor2} />
-                    </div>
-                    <div className="flex flex-col gap-2 px-2">
-                      <h1>3. Apa saja yang kamu butuhkan utk mencapai goals karir itu? dan apakah ada external support dari atasan atau Talentlytica dapat berikan?</h1>
-                      <EditorContent onFocus={() => setActiveEditor(PreInteraksiEditor3)} editor={PreInteraksiEditor3} />
-                    </div>
-                  </div>
-                */}
-
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

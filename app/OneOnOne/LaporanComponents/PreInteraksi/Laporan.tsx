@@ -29,6 +29,7 @@ import { LoadingState } from '../../[RoomName]/page';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandList, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
+import { GetKPI } from '../../Server/Gsheet/GetKPI';
 
 type LaporanProps = {
   handleKomitmenDatatoAI?: (KomDataArr: KomitmenData[] | undefined) => void
@@ -56,7 +57,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   const [DocumentCheck, setDocumentCheck] = useState<Document | undefined>()
   const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
   const [Loaded, setLoaded] = useState(false)
-  const [Open, setOpen] = useState(false)
 
   // -- UseEffects --
   useEffect(() => {
@@ -81,34 +81,9 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       const dac = doc[0]
       if (!dac) return
       aditor?.commands.setContent(dac.memberHTML)
-      // editor2?.commands.setContent(dac.memberHTML2)
-      // editor3?.commands.setContent(dac.memberHTML3)
       setDocumentCheck(dac)
     }).finally(() => {
-      if (!aditor?.getHTML()) return
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(aditor?.getHTML(), 'text/html');
-      const taskListItems = doc.querySelectorAll('ul[data-type="taskList"]');
-      let filteredContent = '';
-      let skipContent = false;
-
-      taskListItems.forEach((item, index) => {
-        const isChecked = item.querySelector('li[data-checked="true"]');
-        if (isChecked) {
-          skipContent = true
-        } else {
-          skipContent = false
-          filteredContent += item.outerHTML
-        }
-        let nextSibling = item.nextElementSibling;
-        while (nextSibling && nextSibling.getAttribute('data-type') !== "taskList") {
-          if (!skipContent) {
-            filteredContent += nextSibling?.outerHTML
-          }
-          nextSibling = nextSibling.nextElementSibling
-        }
-      });
-      aditor.commands.setContent(filteredContent)
+      ParseHTMLContent()
     })
     //@ts-ignore
   }, [User, Managers])
@@ -121,6 +96,48 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   const filteredManagers = Managers.filter((m) => m.email !== User?.email)
 
   // -- Functions -- 
+  function ParseHTMLContent() {
+    if (!aditor?.getHTML()) return
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(aditor?.getHTML(), 'text/html');
+    const taskListItems = doc.querySelectorAll('ul[data-type="taskList"]');
+    let filteredContent = '';
+    let skipContent = false;
+
+    taskListItems.forEach((item, index) => {
+      const isChecked = item.querySelector('li[data-checked="true"]');
+      if (isChecked) {
+        skipContent = true
+      } else {
+        skipContent = false
+        filteredContent += item.outerHTML
+      }
+      let nextSibling = item.nextElementSibling;
+      while (nextSibling && nextSibling.getAttribute('data-type') !== "taskList") {
+        if (!skipContent) {
+          filteredContent += nextSibling?.outerHTML
+        }
+        nextSibling = nextSibling.nextElementSibling
+      }
+    });
+
+
+    const KPI = GetKPI(User?.username).then((Rows) => {
+      if (!Rows || Rows.length <= 0) {
+        return
+      }
+      let KPIStuff = '';
+      const aw = Rows?.forEach((row) => {
+        const String = `<p><b>${row.Metric} telah mencapai ${row.Value} dari ${row.Target} (Achieved: ${row.Achievement})</b></p><p></p>`
+        KPIStuff += String
+        return String
+      })
+      filteredContent = `${KPIStuff} ${filteredContent}`
+      aditor.commands.setContent(filteredContent)
+      return
+    })
+  }
+
   function handleSelectManagerChange(val: string) {
     if (!UserUpdater) return
     if (User) {
@@ -146,26 +163,25 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     const manag = Managers.find((man) => man.email === User.manager)
     if (DocumentCheck?.managerContent === "" || !DocumentCheck?.managerHTML || !DocumentCheck.managerContent) {
       if (!DocumentCheck?.DocID) {
-        const res = BikinDocument(ReturnObject, /* editor2?.getHTML(), editor3?.getHTML(), */ User, manag).then(r => {
+        const res = BikinDocument(ReturnObject, User, manag).then(r => {
           handleSavingStatus("Saved")
           setDocumentCheck(r)
         })
         return
       }
-      const res = UpdatePreDocument(ReturnObject,/*  editor2?.getHTML(), editor3?.getHTML(), */ User.UserID, DocumentCheck?.DocID).then(r => {
+      const res = UpdatePreDocument(ReturnObject, User.UserID, DocumentCheck?.DocID).then(r => {
         handleSavingStatus("Saved")
         setDocumentCheck(r)
       })
       return
     } else {
-      const res = BikinDocument(ReturnObject,/*  editor2?.getHTML(), editor3?.getHTML(), */ User, manag).then(r => {
+      const res = BikinDocument(ReturnObject, User, manag).then(r => {
         handleSavingStatus("Saved")
         setDocumentCheck(r)
       })
     }
     return ReturnObject
   }
-
 
   function handleAIassist() {
     if (!handleKomitmenDatatoAI) return
@@ -193,6 +209,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
 
   }
 
+
   const renderManagerSelect = useMemo(() => {
     if (User?.manager) {
       const manag = Managers.find((man) => man.email === User.manager)
@@ -200,7 +217,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            aria-expanded={Open}
             className="gap-5"
           >
             {manag?.username}
@@ -240,7 +256,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              aria-expanded={Open}
               className="gap-5"
             >
               <span className="text-muted-foreground">Pilih Manager...</span>
@@ -335,8 +350,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       }
     },
   })
-  // const editor2 = useEditor(Editoropts)
-  // const editor3 = useEditor(Editoropts)
 
 
   const $Isi = aditor?.$nodes('paragraph')
@@ -415,16 +428,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
               </Button>
             </div>
           </div>
-          {/*
-          <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
-            <h1>Apa yang menjadi kendala goal tersebut belum dapat anda capai?</h1>
-            <EditorContent onFocus={() => setActiveEditor(editor2)} editor={editor2} />
-          </div>
-          <div className="flex flex-col gap-5 px-7 py-3 border-l-2 border-gray-400 ">
-            <h1>Apa saja yang kamu butuhkan utk mencapai goals karir itu? dan apakah ada external support dari atasan atau Talentlytica dapat berikan?</h1>
-            <EditorContent onFocus={() => setActiveEditor(editor3)} editor={editor3} />
-          </div>
-          */}
         </div>
       </div>
     </div>
