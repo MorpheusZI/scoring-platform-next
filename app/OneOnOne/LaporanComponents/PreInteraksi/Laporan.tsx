@@ -121,9 +121,11 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       }
     });
 
-
     const KPI = GetKPI(User?.username).then((Rows) => {
       if (!Rows || Rows.length <= 0) {
+        return
+      }
+      if (aditor.getText().toLowerCase().includes(Rows[0].Metric.toLowerCase())) {
         return
       }
       let KPIStuff = '';
