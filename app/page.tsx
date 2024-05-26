@@ -1,6 +1,6 @@
 'use client'
 import { redirect } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, } from "react";
 
 export default function Home() {
   useEffect(() => {
@@ -9,6 +9,6 @@ export default function Home() {
     if (!Userdata) {
       return redirect('/Login')
     }
-    return redirect(`/OneOnOne/${res.username}`)
+    return redirect(`/PreInteraksi/${res.username}`)
   }, [])
 }

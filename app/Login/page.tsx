@@ -38,7 +38,7 @@ export default function Home() {
       setLoadState(false)
       const TeamData = localStorage.getItem('UserStore')
       const Team = TeamData ? JSON.parse(TeamData) : 'Engineer'
-      router.push(`/OneOnOne/${Team.username}`)
+      router.push(`/PreInteraksi/${Team.username}`)
       return r
     })
   }

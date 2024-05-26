@@ -1,5 +1,4 @@
 'use server'
-import { GC_Credentials } from "@/app/verser/vertexai";
 import { GoogleSpreadsheet } from 'google-spreadsheet'
 import { JWT } from "google-auth-library";
 

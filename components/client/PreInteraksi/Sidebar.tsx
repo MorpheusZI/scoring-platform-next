@@ -1,9 +1,13 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TableProperties, History } from "lucide-react";
 import { KomitmenData } from "./Laporan";
 import AiAssist from "./AIAssistant";
+
+//ui imports
 import { Select, SelectContent, SelectGroup, SelectTrigger } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TableProperties, } from "lucide-react";
 import { SelectValue } from "@radix-ui/react-select";
+
+//utilities
 import { Subtopics } from "@/lib/functions/server/utils/Topics"
 
 interface SideBarProps {

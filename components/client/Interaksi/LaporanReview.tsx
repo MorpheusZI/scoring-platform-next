@@ -9,19 +9,17 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { TaskList } from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
 
-//component imports
+//components
 import ToolBar from "@/components/client/utils/Toolbar";
 
-//Function Imports
+//functions 
 import { getDocByDocID, getDocs } from '@/lib/functions/server/Database/DocumentFunctions';
 
-//Types
+//types
 import { SummaryReq, LaporanRevProps, InteraksiContents } from '@/lib/types';
-import { Document, User } from '@prisma/client';
+import { User } from '@prisma/client';
 
-// lucide/shadcn imports
-import { Checkbox } from '@/components/ui/checkbox'
-import { Button } from "@/components/ui/button";
+// ui imports
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -121,7 +119,7 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
         Placeholder.configure({
           includeChildren: true,
           considerAnyAsEmpty: true,
-          placeholder: ({ editor, node }) => {
+          placeholder: () => {
             if (type) {
               return "Tulis Catatan"
             }

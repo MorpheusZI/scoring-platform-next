@@ -1,8 +1,7 @@
 'use client'
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { CalendarClock, History, Loader2, Sparkles, TableProperties } from 'lucide-react';
+import { CalendarClock, History, Sparkles, TableProperties } from 'lucide-react';
 import { Subtopics } from '@/lib/functions/server/utils/Topics'
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,7 @@ export function CountKomitmen(Komitmen: string | null): returnCountKomitmen {
   const doc = parser.parseFromString(Komitmen || "", 'text/html')
   const taskListItems = doc.querySelectorAll('ul[data-type="taskList"]');
   let els: (Element)[] = [];
-  const CheckedTaskLists = taskListItems.forEach((item, index) => {
+  taskListItems.forEach((item,) => {
     const CheckedItem = item.querySelector('li[data-checked="true"]')
     if (CheckedItem || CheckedItem !== null) {
       els.push(CheckedItem)
@@ -33,7 +32,6 @@ export default function Sidebar({ CurrentDocID, aiResp, SummaryCall, User, Updat
   const [isExpanded, setIsExpanded] = useState(false);
   const [Mentee, setMentee] = useState<User | null>()
   const [HistoricalDocs, setHistoricalDocs] = useState<Document[] | null | undefined>()
-  const [ChangedTabs, setChangedTabs] = useState(true)
 
   useEffect(() => {
     const MenteeData = sessionStorage.getItem('MenteeData')
@@ -44,7 +42,7 @@ export default function Sidebar({ CurrentDocID, aiResp, SummaryCall, User, Updat
   useEffect(() => {
     if (!Mentee) return
     if (!User) return
-    const docs = getDocs(Mentee?.UserID, User?.UserID).then(docs => {
+    getDocs(Mentee?.UserID, User?.UserID).then(docs => {
       const hisdocs = docs.filter((doc) => doc.memberID === Mentee.UserID && doc.managerID === User.UserID)
       setHistoricalDocs(hisdocs)
     })

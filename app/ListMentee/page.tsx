@@ -1,13 +1,12 @@
 'use client'
 import { Button } from "@/components/ui/button"
-import { redirect, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { getAllUsers, getMentees } from "@/lib/functions/server/Database/UserFunctions"
 import { getDocs, getADocs } from '@/lib/functions/server/Database/DocumentFunctions'
-import { Prisma, User } from "@prisma/client"
-import { Check, ChevronDown, CircleUserRound, Ellipsis, Loader2, LogOut, Search, UserRoundX, UsersRound, X } from "lucide-react"
+import { User } from "@prisma/client"
+import { CircleUserRound, Ellipsis, Loader2, LogOut, Search, UsersRound, X } from "lucide-react"
 import Link from "next/link"
-import { Select, SelectGroup, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { PopoverClose } from "@radix-ui/react-popover"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -31,12 +30,12 @@ export default function ListMentee() {
 
   function handleMulaiInteraksi(Mentee: User) {
     sessionStorage.setItem('MenteeData', JSON.stringify(Mentee))
-    router.push(`/OneOnOne/Review/${Mentee.username}`)
+    router.push(`/Interaksi/${Mentee.username}`)
   }
 
   useEffect(() => {
     const Userdata = localStorage.getItem('UserStore')
-    const res = setUserData(Userdata ? JSON.parse(Userdata) : null)
+    setUserData(Userdata ? JSON.parse(Userdata) : null)
     if (!Userdata) {
       router.push('/Login')
     }
@@ -172,7 +171,7 @@ export default function ListMentee() {
             <PopoverContent>
               <div className="flex w-fit items-start flex-col gap-2 ">
                 <Button variant="link" asChild>
-                  <Link className="hover:text-purple-300" href={`/OneOnOne/${UserData?.username}`}>
+                  <Link className="hover:text-purple-300" href={`/PreInteraksi/${UserData?.username}`}>
                     <div className="flex gap-2 items-center">
                       <UsersRound />
                       <p>Switch to team member</p>

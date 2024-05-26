@@ -1,36 +1,34 @@
 'use client'
 import '../EditorStyles.css'
 import React, { useState, useEffect, useMemo } from "react"
+
 // tipTap imports
-import { useEditor, Editor, EditorContent, JSONContent, EditorOptions } from '@tiptap/react';
-import { Underline } from '@tiptap/extension-underline';
+import { useEditor, EditorContent } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { TaskList } from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
 
-//component imports
+//components
 import ToolBar from "@/components/client/utils/Toolbar";
 import { getAllUsers, updateUserManager } from "@/lib/functions/server/Database/UserFunctions"
 
-// lucide/shadcn imports
+// functions
+import { GetKPI } from '@/lib/functions/server/Gsheet/GetKPI';
+import { getDocs, BikinDocument, UpdatePreDocument } from '@/lib/functions/server/Database/DocumentFunctions';
+
+// types
+import { EditorTextandHTML, KomitmenData, LaporanProps } from '@/lib/types';
+
+// ui imports
 import { Check, ChevronsUpDown, CircleAlert, Sparkles } from "lucide-react";
-import { Toggle } from "@/components/ui/toggle";
-import { DropdownMenuGroup, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from "@/components/ui/button";
 import { Document, User } from '@prisma/client';
-import { Select, SelectValue, SelectContent, SelectGroup, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { AmbilPreDocument, BikinDocument, UpdatePreDocument } from '@/lib/functions/server/Database/DocumentFunctions';
-import { Subtopics } from '@/lib/functions/server/utils/Topics';
-import { redirect, useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
-import { getDocs } from '@/lib/functions/server/Database/DocumentFunctions';
-import { LoadingState } from '@/lib/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandList, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
-import { GetKPI } from '@/lib/functions/server/Gsheet/GetKPI';
-import { EditorTextandHTML, KomitmenData, LaporanProps } from '@/lib/types';
 
 export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, handleSavingStatus, UserUpdater }: LaporanProps) {
   // -- State --
@@ -38,8 +36,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   const [DisabledAI, setDisabledAI] = useState(false)
   const [prevEditorContentCheck, setprevEditorContentCheck] = useState<string | undefined>("")
   const [DocumentCheck, setDocumentCheck] = useState<Document | undefined>()
-  const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
-  const [Loaded, setLoaded] = useState(false)
 
   // -- UseEffects --
   useEffect(() => {
@@ -76,7 +72,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     //@ts-ignore
   }, [FuncCaller])
 
-  const filteredManagers = Managers.filter((m) => m.email !== User?.email)
 
   // -- Functions -- 
   function ParseHTMLContent() {
@@ -87,7 +82,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     let filteredContent = '';
     let skipContent = false;
 
-    taskListItems.forEach((item, index) => {
+    taskListItems.forEach((item) => {
       const isChecked = item.querySelector('li[data-checked="true"]');
       if (isChecked) {
         skipContent = true
@@ -105,7 +100,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     });
 
     aditor.commands.setContent(filteredContent)
-    const KPI = GetKPI(User?.username).then((Rows) => {
+    GetKPI(User?.username).then((Rows) => {
       if (!Rows || Rows.length <= 0) {
         return
       }
@@ -113,7 +108,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
         return
       }
       let KPIStuff = '';
-      const aw = Rows?.forEach((row) => {
+      Rows?.forEach((row) => {
         const String = `<p><b>${row.Metric} telah mencapai ${row.Value} dari ${row.Target} (Achieved: ${row.Achievement})</b></p><p></p>`
         KPIStuff += String
         return String
@@ -129,7 +124,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     if (User) {
       UserUpdater()
       const managerusername = Managers.find((m) => m.email === val)
-      const res = updateUserManager(User.email, val).then((res) =>
+      updateUserManager(User.email, val).then(() =>
         toast({
           title: "Manager terpilih!",
           description: `Manager Untuk laporan ini: ${managerusername?.username}`
@@ -149,19 +144,19 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     const manag = Managers.find((man) => man.email === User.manager)
     if (DocumentCheck?.managerContent === "" || !DocumentCheck?.managerHTML || !DocumentCheck.managerContent) {
       if (!DocumentCheck?.DocID) {
-        const res = BikinDocument(ReturnObject, User, manag).then(r => {
+        BikinDocument(ReturnObject, User, manag).then(r => {
           handleSavingStatus("Saved")
           setDocumentCheck(r)
         })
         return
       }
-      const res = UpdatePreDocument(ReturnObject, User.UserID, DocumentCheck?.DocID).then(r => {
+      UpdatePreDocument(ReturnObject, User.UserID, DocumentCheck?.DocID).then(r => {
         handleSavingStatus("Saved")
         setDocumentCheck(r)
       })
       return
     } else {
-      const res = BikinDocument(ReturnObject, User, manag).then(r => {
+      BikinDocument(ReturnObject, User, manag).then(r => {
         handleSavingStatus("Saved")
         setDocumentCheck(r)
       })
@@ -236,7 +231,6 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
         </PopoverContent>
       </Popover>
     } else {
-      const manag = Managers.find((man) => man.email === User?.manager)
       return <div className="flex gap-4 items-center">
         <Popover>
           <PopoverTrigger asChild>
@@ -292,7 +286,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
   })
 
   const aditor = useEditor({
-    onUpdate: ({ editor }) => {
+    onUpdate: () => {
       if (prevEditorContentCheck === aditor?.getText()) {
         setDisabledAI(true)
       } else {
@@ -320,10 +314,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       customTaskList,
       TaskItem,
       Placeholder.configure({
-        placeholder: ({ editor, node }) => {
-          if (editor?.can().splitListItem('taskList')) {
-            return "CTRL + K Lagi untuk mendeskripsikan"
-          }
+        placeholder: () => {
           return "(Ctrl + K) untuk menjelaskan situasi secara singkat, lalu (Enter) dan (Tab) untuk menjelaskan tugas, aksi, dan hasil."
         },
         considerAnyAsEmpty: true,

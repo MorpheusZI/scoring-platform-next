@@ -36,12 +36,12 @@ export default function Home() {
       password: values.password,
       email: values.email,
     }
-    const CreatedUser = createUser(usr).then(r => {
+    createUser(usr).then(r => {
       localStorage.setItem('UserStore', JSON.stringify(r))
       const userStringData = localStorage.getItem('UserStore')
       const UserData = userStringData ? JSON.parse(userStringData) : null
       setLoadState(false)
-      router.push(`/OneOnOne/${UserData.username}`)
+      router.push(`/PreInteraksi/${UserData.username}`)
       return r
     })
   }

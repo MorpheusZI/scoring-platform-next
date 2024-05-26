@@ -1,11 +1,16 @@
-import { Button } from "@/components/ui/button";
 import { useEffect, useMemo } from 'react'
-import { BotMessageSquare, CheckCircleIcon, CircleX, Lightbulb, LoaderCircle } from "lucide-react";
 import { useState } from "react"
 
-import { KomitmenData } from '../PreInteraksi/Laporan'
-import { testingdata } from "@/lib/functions/server/AI/AIFunctions";
+//functions
+import { StarChecker } from "@/lib/functions/server/AI/AIFunctions";
+
+//types
 import { AIResponse, AiAssistProps, NestedObject, AIResState } from '@/lib/types'
+
+// ui imports
+import { Button } from "@/components/ui/button";
+import { BotMessageSquare, CheckCircleIcon, CircleX, Lightbulb, LoaderCircle } from "lucide-react";
+
 export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistProps) {
   const [AIResState, setAIResState] = useState<AIResState>("null")
   const [AIRes, setAIRes] = useState<(AIResponse | null)[]>([])
@@ -18,11 +23,12 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
   function AIStarCheck() {
     if (KomitmenDataArr.length !== 0 && AIRes !== null) {
       setAIResState("loading");
-      testingdata(KomitmenDataArr).then(res => {
+      StarChecker(KomitmenDataArr).then(res => {
         setAIRes(res);
         setAIResState("fullfilled");
       }).catch(error => {
-        setAIResState("null");
+        setAIResState("null")
+        console.log(error);
       });
     }
   }
@@ -31,7 +37,7 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
     if (!AIRes) return
     const theresAnEmptyObjectOmg = AIRes.filter((AI) => AI?.Situasi.Komentar === "" && AI.Tugas.Komentar === "" && AI.Aksi.Komentar === "" && AI.Hasil.Komentar === "")
     if (theresAnEmptyObjectOmg.length > 0) {
-      setAIResState("err2")
+      setAIResState("err")
     }
     // @ts-ignore
   }, [AIRes])
@@ -44,7 +50,6 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
     } else {
       return <p className="py-1"><Lightbulb className=" text-yellow-300" /></p>
     }
-    return <p>hi</p>
   }
 
 
@@ -71,20 +76,19 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
             <BotMessageSquare className="w-10 h-10" />
           </div>
         </div>
-        break;
 
       case "loading":
         return <div className="flex justify-evenly py-5 items-center text-black ">
           <LoaderCircle className="w-12 h-12 animate-spin" />
           <p>AI sedang memasak ...</p>
         </div>
-        break;
-      case "err2":
+
+      case "err":
         return <div className="flex flex-col py-5 items-center text-black">
           <p className="text-sm">Menghadapi error dari AI.</p>
           <Button onClick={AIStarCheck}>Coba Ulang</Button>
         </div>
-        break;
+
       case "fullfilled":
         return AIRes.map((res, index: number) => {
           return <div key={index} className="flex flex-col p-5 gap-7 border-2 bg-white rounded-xl border-gray-300 text-black">
@@ -97,7 +101,6 @@ export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistP
               : null}
           </div>
         })
-        break;
     }
     //@ts-ignore
   }, [KomitmenChange, AIResState])

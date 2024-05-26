@@ -21,7 +21,7 @@ export type AiAssistProps = {
   KomitmenChange: boolean
 }
 
-export type AIResState = "null" | "err2" | "loading" | "fullfilled"
+export type AIResState = "null" | "err" | "loading" | "fullfilled"
 
 
 export type InteraksiContents = {
