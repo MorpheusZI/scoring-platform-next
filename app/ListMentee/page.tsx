@@ -2,7 +2,8 @@
 import { Button } from "@/components/ui/button"
 import { redirect, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
-import { getADocs, getAllUsers, getDocs, getMentees } from "./Server/GetMentees"
+import { getAllUsers, getMentees } from "@/lib/functions/server/Database/UserFunctions"
+import { getDocs, getADocs } from '@/lib/functions/server/Database/DocumentFunctions'
 import { Prisma, User } from "@prisma/client"
 import { Check, ChevronDown, CircleUserRound, Ellipsis, Loader2, LogOut, Search, UserRoundX, UsersRound, X } from "lucide-react"
 import Link from "next/link"

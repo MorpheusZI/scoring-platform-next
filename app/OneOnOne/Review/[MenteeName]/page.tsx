@@ -1,16 +1,17 @@
 'use client'
 import { useState, useEffect, useMemo } from 'react'
-import Sidebar, { CountKomitmen } from '../../LaporanComponents/Interaksi/SideBarReview'
-import Laporan from '../../LaporanComponents/Interaksi/LaporanReview'
+import Sidebar, { CountKomitmen } from '@/components/client/Interaksi/SideBarReview'
+import Laporan from '@/components/client/Interaksi/LaporanReview'
 import { redirect } from 'next/navigation'
 import { User } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import Link from 'next/link'
-import { SummaryReq, vertexAISummarizer } from '../../Server/ambilData'
-import { BikinInterDocument, InteraksiContents, UpdateInterDocument } from '../../Server/BikinDocument'
-import { getDocByDocID, getDocs } from '@/app/ListMentee/Server/GetMentees'
-import { ExcelData, WriteToExcel } from '../../Server/Gsheet/SaveInteraksi'
+import { GoogleAISummarizer } from '@/lib/functions/server/AI/AIFunctions'
+import { BikinInterDocument, UpdateInterDocument } from '@/lib/functions/server/Database/DocumentFunctions'
+import { SummaryReq, InteraksiContents } from "@/lib/types"
+import { getDocByDocID, getDocs } from '@/lib/functions/server/Database/DocumentFunctions'
+import { ExcelData, WriteToExcel } from '@/lib/functions/server/Gsheet/SaveInteraksi'
 import { Check, Loader, Save } from 'lucide-react'
 
 type savingStatus = "nill" | "Saving" | "Saved"
@@ -79,7 +80,7 @@ export default function Home() {
   }, [DocID])
 
   function SummarizeText(SummaryRez: SummaryReq) {
-    const AIres = vertexAISummarizer(SummaryRez).then(res => setSummaryText(res))
+    const AIres = GoogleAISummarizer(SummaryRez).then(res => setSummaryText(res))
   }
 
   function handleSavenSummary(Interaksi: InteraksiContents, SummaryReq: SummaryReq) {
@@ -98,7 +99,7 @@ export default function Home() {
 
     if (!SummaryText) {
       setSavingStatus("Saving")
-      const AIres = vertexAISummarizer(SummaryReq).then((Summary) => {
+      const AIres = GoogleAISummarizer(SummaryReq).then((Summary) => {
         setSummaryText(Summary)
         getDocs(Mentee?.UserID, UserData?.UserID).then((doc) => {
           const newInteraksi: InteraksiContents = { ...Interaksi, Summary: Summary }

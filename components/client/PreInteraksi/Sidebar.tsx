@@ -4,7 +4,7 @@ import { KomitmenData } from "./Laporan";
 import AiAssist from "./AIAssistant";
 import { Select, SelectContent, SelectGroup, SelectTrigger } from "@/components/ui/select";
 import { SelectValue } from "@radix-ui/react-select";
-import { Subtopics } from "../../Server/Topics"
+import { Subtopics } from "@/lib/functions/server/utils/Topics"
 
 interface SideBarProps {
   KomitmenDataArr: KomitmenData[] | undefined

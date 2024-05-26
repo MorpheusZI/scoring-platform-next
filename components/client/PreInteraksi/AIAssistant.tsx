@@ -4,13 +4,8 @@ import { BotMessageSquare, CheckCircleIcon, CircleX, Lightbulb, LoaderCircle } f
 import { useState } from "react"
 
 import { KomitmenData } from '../PreInteraksi/Laporan'
-import { AIResponse, NestedObject, testingdata } from "../../Server/ambilData";
-export type AiAssistProps = {
-  KomitmenDataArr: KomitmenData[]
-  KomitmenChange: boolean
-}
-type AIResState = "null" | "err2" | "loading" | "fullfilled"
-
+import { testingdata } from "@/lib/functions/server/AI/AIFunctions";
+import { AIResponse, AiAssistProps, NestedObject, AIResState } from '@/lib/types'
 export default function AiAssist({ KomitmenDataArr, KomitmenChange, }: AiAssistProps) {
   const [AIResState, setAIResState] = useState<AIResState>("null")
   const [AIRes, setAIRes] = useState<(AIResponse | null)[]>([])

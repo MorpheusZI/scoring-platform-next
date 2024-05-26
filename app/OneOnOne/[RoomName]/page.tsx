@@ -1,20 +1,24 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react'
-import Sidebar from "../LaporanComponents/PreInteraksi/Sidebar"
-import { EditorTextandHTML, KomitmenData } from '../LaporanComponents/PreInteraksi/Laporan'
-import Laporan from '../LaporanComponents/PreInteraksi/Laporan'
+//component imports
+import Sidebar from "@/components/client/PreInteraksi/Sidebar"
+import Laporan from "@/components/client/PreInteraksi/Laporan"
+
+//Function imports
+import { getUser } from '@/lib/functions/server/Database/UserFunctions'
+
+//Type imports
+import { EditorTextandHTML, KomitmenData, LoadingState } from '@/lib/types'
+
 import { redirect, useRouter } from 'next/navigation'
 import { User } from '@prisma/client'
-import Loading from './loading'
 import { Button } from '@/components/ui/button'
 import { Check, Ellipsis, Loader, LogOut, SquareUser } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from '@/components/ui/use-toast'
-import { getUser } from '../Server/BikinDocument'
 import { Select, SelectContent, SelectGroup, SelectTrigger } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
-export type LoadingState = "nill" | "Saved" | "Saving"
 
 export default function Home() {
   const router = useRouter()

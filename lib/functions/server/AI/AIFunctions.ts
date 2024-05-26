@@ -1,33 +1,10 @@
 'use server'
-import { PrismaClient } from '@prisma/client'
 import { GenerateContentRequest, GenerativeModel, } from "@google-cloud/vertexai"
-import { KomitmenData } from "../LaporanComponents/PreInteraksi/Laporan"
-import { HarmCategory, HarmBlockThreshold } from "@google/generative-ai"
-import { genModel } from "@/app/verser/vertexai"
-import { model } from '@/app/verser/GoogleAI'
-const prisma = new PrismaClient()
-
-export interface SummaryReq {
-  KomitmenAtasan: string | undefined;
-  KomitmenBawahan: string | undefined;
-  Catatan: string | undefined;
-  NamaManager: string | undefined;
-  NamaMentee: string | undefined;
-}
-
-export interface NestedObject {
-  text: string;
-  Kualitas: string;
-  Komentar: string;
-}
-
-export interface AIResponse {
-  Situasi: NestedObject;
-  Tugas: NestedObject;
-  Aksi: NestedObject;
-  Hasil: NestedObject;
-  Judul?: string;
-}
+import { KomitmenData } from "@/lib/types"
+import { HarmCategory, HarmBlockThreshold, Part } from "@google/generative-ai"
+import { genModel } from "./Models/vertexai"
+import { model } from './Models/GoogleAI'
+import { AIResponse, SummaryReq } from '@/lib/types'
 
 function parseAIResponse(response: string, judul: string = ""): AIResponse {
   const mainKeys: (keyof AIResponse)[] = ["Situasi", "Tugas", "Aksi", "Hasil"];
@@ -58,42 +35,19 @@ function parseAIResponse(response: string, judul: string = ""): AIResponse {
   });
   return obj;
 }
-export async function vertexAISummarizer({ KomitmenAtasan, KomitmenBawahan, Catatan, NamaMentee, NamaManager }: SummaryReq) {
-  const summarryReq: GenerateContentRequest = {
-    contents: [{ role: "user", parts: [{ text: `data:{KomitmenManager: ${KomitmenAtasan},KomitmenKaryawan: ${KomitmenBawahan},Catatan: ${Catatan}, NamaAtasan: ${NamaManager},NamaKaryawan: ${NamaMentee}}. prompt = Dari hasil komitmen atasan, komitmen bawahan, dan catatan, buatkan summary hanya dalam 1 paragraf makismal 5 Kalimat. Notes: Catatan dimiliki oleh Atasan` }] }]
-  }
-  const vresponseStream = await genModel.generateContentStream(summarryReq)
-  const response = await vresponseStream.response
-
-  const fulltextResponse = response.candidates[0].content.parts[0].text
-  return fulltextResponse
-
+export async function GoogleAISummarizer({ KomitmenAtasan, KomitmenBawahan, Catatan, NamaMentee, NamaManager }: SummaryReq) {
+  const parts = [
+    { text: `data:{KomitmenManager: ${KomitmenAtasan},KomitmenKaryawan: ${KomitmenBawahan},Catatan: ${Catatan}, NamaAtasan: ${NamaManager},NamaKaryawan: ${NamaMentee}}.\nprompt = Dari hasil komitmen atasan, komitmen bawahan, dan catatan, buatkan summary hanya dalam 1 paragraf makismal 5 Kalimat.\nNotes: Catatan dimiliki oleh Atasan` },
+  ];
+  const genAIContent = await model.generateContent({
+    contents: [{ role: "user", parts }],
+  })
+  const AIResponse = await genAIContent.response
+  const AISummary = await AIResponse.text()
+  return AISummary
 }
 
-async function vertexAIStarChecker({ Judul, Isi }: KomitmenData) {
-  const generationConfig = {
-    temperature: 1,
-  };
-
-  const safetySettings = [
-    {
-      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-    },
-  ];
-
+async function GoogleAIStarChecker({ Judul, Isi }: KomitmenData) {
   const parts = [
     { text: "Anda adalah AI Assistant untuk mengevaluasi inputan komitmen karyawan dan memberi saran perbaikan yang konsisten.\nEvaluasi pemenuhan status (Lengkap / Belum Lengkap / Tidak Ada) pada STAR (Situation, Task, Action, Result) dari inputan komitmen. Jangan sertakan karakter lain (seperti '*', dan lainnya) selain yang ada di prompt.\n\nJawab Dengan mengikuti template seperti berikut: \n{Kriteria} : \"{Kalimat dari isi input yang memenuhi Kriteria}\".  Status: { Status dari pemenuhan Kriteria tersebut (\"Lengkap\" | \"Belum Lengkap\" | \"Tidak Ada\") }. Deskripsi: \" {Deskripsi mengapa anda beri Status tersebut} \"" },
     { text: "input: Mempelajari Vertex AI\n\nSaya melakukan komitmen ini dengan mengakses course dari Google. Hasilnya adalah saya mendapat knowledge baru dalam pengembangan product ke depan, yaitu memanfaatkan AI dalam proses. Saya merasa senang karena bisa mempelajari AI, sesuatu yang saya awalnya rasa ini sulit, ternyata bisa dipelajari. Saya merasa senang karena bisa mempelajari AI, sesuatu yang saya awalnya rasa ini sulit, ternyata bisa dipelajari." },
@@ -104,7 +58,6 @@ async function vertexAIStarChecker({ Judul, Isi }: KomitmenData) {
 
   const genAIRes = await model.generateContent({
     contents: [{ role: "user", parts }],
-    generationConfig, safetySettings
   })
 
   const AIResponse = await genAIRes.response
@@ -115,7 +68,7 @@ async function vertexAIStarChecker({ Judul, Isi }: KomitmenData) {
 
 export async function testingdata(KomitmenDataArr: KomitmenData[]) {
   const promises = KomitmenDataArr.map(async (KomitmenData, index) => {
-    const airestext = await vertexAIStarChecker(KomitmenData);
+    const airestext = await GoogleAIStarChecker(KomitmenData);
     if (airestext) {
       return airestext
     }
@@ -129,19 +82,3 @@ export async function testingdata(KomitmenDataArr: KomitmenData[]) {
   return filteredResults
 }
 
-export async function getManagers() {
-  const managers = await prisma.user.findMany()
-  return managers
-}
-
-export async function updateUserManager(userEmail: string, managerP: string) {
-  const userUpdated = await prisma.user.update({
-    where: {
-      email: userEmail,
-    },
-    data: {
-      manager: managerP
-    }
-  })
-  return userUpdated
-}

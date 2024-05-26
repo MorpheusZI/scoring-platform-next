@@ -1,39 +1,31 @@
-import '../LaporStyles.css'
+import '../EditorStyles.css'
 import React, { useState, useEffect, useMemo } from "react"
+
 // tipTap imports
-import { useEditor, Editor, EditorContent, JSONContent, EditorOptions } from '@tiptap/react';
+import { useEditor, Editor, EditorContent, EditorOptions, mergeAttributes } from '@tiptap/react';
 import { Underline } from '@tiptap/extension-underline';
 import { StarterKit } from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { TaskList } from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
+
 //component imports
-import ToolBar from "../../../Rcomponents/Toolbar";
+import ToolBar from "@/components/client/utils/Toolbar";
+
+//Function Imports
+import { getDocByDocID, getDocs } from '@/lib/functions/server/Database/DocumentFunctions';
+
+//Types
+import { SummaryReq, LaporanRevProps, InteraksiContents } from '@/lib/types';
+import { Document, User } from '@prisma/client';
 
 // lucide/shadcn imports
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from "@/components/ui/button";
-import { Document, User } from '@prisma/client';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { AmbilPreDocument, BikinDocument, BikinInterDocument, InteraksiContents, UpdateInterDocument } from '../../Server/BikinDocument';
-import { SummaryReq, getManagers, vertexAISummarizer } from '../../Server/ambilData';
-import { ExcelData, WriteToExcel } from '../../Server/Gsheet/SaveInteraksi';
-import { getDocByDocID, getDocs } from '@/app/ListMentee/Server/GetMentees';
-import { preinit } from 'react-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { GetKPI } from '../../Server/Gsheet/GetKPI';
 
-type LaporanProps = {
-  User: User | null;
-  CallSummary: boolean;
-  CallSave: boolean | undefined;
-  // SummaryFuncToSideBar: (aiResp: string | undefined) => void;
-  SummaryFunc: (SummaryRez: SummaryReq) => void
-  SaveFunc: (Interaksi: InteraksiContents, SummaryReq: SummaryReq) => void
-  CurrentDocID: number | undefined;
-}
-
-export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, SaveFunc, CurrentDocID }: LaporanProps) {
+export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, SaveFunc, CurrentDocID }: LaporanRevProps) {
   const [ActiveEditor, setActiveEditor] = useState<Editor | null>(null)
   const [Mentee, setMentee] = useState<User | null>()
   const { toast } = useToast()
@@ -48,8 +40,8 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
   useEffect(() => {
     if (!User) return
     if (!Mentee) return
-    GetKPI(Mentee.username)
     if (!CurrentDocID || CurrentDocID === null || CurrentDocID == undefined) {
+      console.log(CurrentDocID)
       PreInteraksiEditor?.commands.setContent("")
       KomitmenAtasanEditor?.commands.setContent("")
       Catatan?.commands.setContent("")
@@ -71,6 +63,26 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
   }, [Mentee, User, CurrentDocID])
 
   const customTaskList = TaskList.extend({
+    // renderHTML({ HTMLAttributes }) {
+    //   return [
+    //     'ul',
+    //     mergeAttributes(this.options.HTMLAttributes, HTMLAttributes,
+    //       { 'data-type': this.name }),
+    //     ['div', 0],
+    //     [
+    //       'select',
+    //       mergeAttributes(this.options.HTMLAttributes, {
+    //         style: "margin:12px;padding-block:5px;padding-inline:3px;background-color:transparent;border-radius:5px;border:2px purple solid;"
+    //       }),
+    //       [
+    //         'option', { value: "bawahan", label: "Komitmen Bawahan" }
+    //       ],
+    //       [
+    //         'option', { value: "atasan", label: "Komitmen Atasan" }
+    //       ],
+    //     ],
+    //   ]
+    // },
     addKeyboardShortcuts() {
       return {
         'Mod-k': () => this.editor.commands.toggleTaskList(),
@@ -101,12 +113,15 @@ export default function Laporan({ User, CallSummary, CallSave, SummaryFunc, Save
         }),
         Underline,
         customTaskList,
-        TaskItem,
+        TaskItem.configure({
+          HTMLAttributes: {
+            style: "margin-top:1rem"
+          }
+        }),
         Placeholder.configure({
-          placeholder: ({ node }) => {
-            if (node.type.name === "taskItem") {
-              return "Tab untuk mendeskripsikan Komitmen"
-            }
+          includeChildren: true,
+          considerAnyAsEmpty: true,
+          placeholder: ({ editor, node }) => {
             if (type) {
               return "Tulis Catatan"
             }

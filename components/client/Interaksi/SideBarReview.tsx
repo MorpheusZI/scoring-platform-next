@@ -3,21 +3,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { CalendarClock, History, Loader2, Sparkles, TableProperties } from 'lucide-react';
-import { Subtopics } from '../../Server/Topics';
+import { Subtopics } from '@/lib/functions/server/utils/Topics'
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Document, User } from '@prisma/client';
-import { getDocs } from '@/app/ListMentee/Server/GetMentees';
+import { getDocs } from '@/lib/functions/server/Database/DocumentFunctions';
+import { SideBarRevProps, returnCountKomitmen } from '@/lib/types';
 
-export type SideBarRevProps = {
-  aiResp: string | undefined
-  SummaryCall?: () => void;
-  UpdateDocHistory: boolean | undefined
-  User: User | undefined | null
-  ChangeDocID?: (DocID: number | undefined) => void
-  CurrentDocID?: number
-}
-type returnCountKomitmen = { total: number, done: number }
 
 export function CountKomitmen(Komitmen: string | null): returnCountKomitmen {
   const parser = new DOMParser()

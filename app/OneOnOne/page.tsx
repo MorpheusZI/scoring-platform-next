@@ -12,18 +12,5 @@ export interface UserData {
 export default function Home() {
   const [DocUID, setDocUID] = useState<string | null>(null)
   const [UserData, setUserData] = useState<UserData | null>()
-  useEffect(() => {
-    // const Userdata = localStorage.getItem('UserStore')
-    // const res = setUserData(Userdata ? JSON.parse(Userdata) : null)
-    // if (!Userdata) {
-    //   return redirect('/Login')
-    // }
-    //
-    // if (UserData && UserData?.Documents.length > 0) {
-    //   const Docres = AmbilDocument(UserData.User.UserID).then()
-    // } else if (UserData && UserData?.Documents.length === 0) {
-    //   console.log("hi")
-    // }
-  }, [])
-  return <p></p>
+  return redirect("/Login")
 }

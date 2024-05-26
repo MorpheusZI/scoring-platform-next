@@ -1,5 +1,5 @@
 'use client'
-import '../LaporStyles.css'
+import '../EditorStyles.css'
 import React, { useState, useEffect, useMemo } from "react"
 // tipTap imports
 import { useEditor, Editor, EditorContent, JSONContent, EditorOptions } from '@tiptap/react';
@@ -10,8 +10,8 @@ import { TaskList } from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
 
 //component imports
-import ToolBar from "../../../Rcomponents/Toolbar";
-import { getManagers, updateUserManager } from '../../Server/ambilData';
+import ToolBar from "@/components/client/utils/Toolbar";
+import { getAllUsers, updateUserManager } from "@/lib/functions/server/Database/UserFunctions"
 
 // lucide/shadcn imports
 import { Check, ChevronsUpDown, CircleAlert, Sparkles } from "lucide-react";
@@ -20,34 +20,17 @@ import { DropdownMenuGroup, DropdownMenu, DropdownMenuContent, DropdownMenuItem,
 import { Button } from "@/components/ui/button";
 import { Document, User } from '@prisma/client';
 import { Select, SelectValue, SelectContent, SelectGroup, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { AmbilPreDocument, BikinDocument, UpdatePreDocument, getUser } from '../../Server/BikinDocument';
-import { Subtopics } from '../../Server/Topics';
+import { AmbilPreDocument, BikinDocument, UpdatePreDocument } from '@/lib/functions/server/Database/DocumentFunctions';
+import { Subtopics } from '@/lib/functions/server/utils/Topics';
 import { redirect, useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
-import { getDocs } from '@/app/ListMentee/Server/GetMentees';
-import { LoadingState } from '../../[RoomName]/page';
+import { getDocs } from '@/lib/functions/server/Database/DocumentFunctions';
+import { LoadingState } from '@/lib/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandList, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
-import { GetKPI } from '../../Server/Gsheet/GetKPI';
-
-type LaporanProps = {
-  handleKomitmenDatatoAI?: (KomDataArr: KomitmenData[] | undefined) => void
-  User: User | null;
-  FuncCaller?: boolean;
-  UserUpdater?: () => void;
-  handleSavingStatus?: (Status: LoadingState) => void
-}
-
-type KomitmenData = {
-  Judul: string | undefined;
-  Isi: string | undefined;
-};
-
-export type EditorTextandHTML = {
-  Content: string | undefined,
-  HTML: string | undefined
-}
+import { GetKPI } from '@/lib/functions/server/Gsheet/GetKPI';
+import { EditorTextandHTML, KomitmenData, LaporanProps } from '@/lib/types';
 
 export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, handleSavingStatus, UserUpdater }: LaporanProps) {
   // -- State --
@@ -64,7 +47,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
     if (!Userdata) {
       return redirect('/Login')
     }
-    getManagers().then(managerz => {
+    getAllUsers().then(managerz => {
       setManager(managerz)
     })
   }, [])
@@ -121,6 +104,7 @@ export default function Laporan({ handleKomitmenDatatoAI, User, FuncCaller, hand
       }
     });
 
+    aditor.commands.setContent(filteredContent)
     const KPI = GetKPI(User?.username).then((Rows) => {
       if (!Rows || Rows.length <= 0) {
         return

@@ -11,7 +11,7 @@ import {
   SeparatorVertical,
 } from 'lucide-react'
 import { Editor } from '@tiptap/react'
-import { Toggle } from '../../components/ui/toggle'
+import { Toggle } from '@/components/ui/toggle'
 import { useEffect } from 'react'
 
 type ToolBarProps = {
