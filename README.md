@@ -160,10 +160,37 @@ github repo for evalin prototype
 
     Semua ui component yang dibuat oleh shadcn
 
-- `lib`
+- ### `lib/`
+  - `Functions/`
+    
+    Semua fuction yang digunakan dalam website
+
+    - `server/`
+      
+      Berisi semua function yang digunakan di backend atau server
+      
+      - `Database/`
+      
+        Semua function terkait data dalam database
+
+      - `AI/`
+
+        Semua function terkait AI
+
+      - `Gsheet/`
+
+        Semua function terkait google spreadsheet operations
+
+      - `Utils/`
+
+        Data tambahan
+
+    - `types.ts`
+      Semua type declaration yang digunakan dalam website
 
 
-
+- ### `prisma`
+  Berisi schema / struktur table database
 
 
   
